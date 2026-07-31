@@ -314,60 +314,8 @@ body{
   <!-- 兔子 -->
   <div class="card" id="bunnyCard">
     <div class="bunny-scene" id="bunnyScene">
-      <div class="bunny-container">
-        <!-- 动漫风垂耳兔 SVG -->
-        <svg viewBox="0 0 200 220" width="170" height="187" style="display:block;margin:0 auto;">
-          <!-- 身体 -->
-          <ellipse cx="100" cy="155" rx="55" ry="50" fill="#D4A574" stroke="#C4956A" stroke-width="2"/>
-          <ellipse cx="100" cy="145" rx="35" ry="28" fill="#F5EDE0" opacity="0.5"/>
-          <!-- 尾巴 -->
-          <circle cx="148" cy="148" r="16" fill="#F5EDE0" stroke="#D4A574" stroke-width="1.5">
-            <animateTransform attributeName="transform" type="rotate" values="0 148 148;8 148 148;-8 148 148;0 148 148" dur="3s" repeatCount="indefinite"/>
-          </circle>
-          <!-- 左脚 -->
-          <ellipse cx="75" cy="200" rx="22" ry="12" fill="#C4956A" stroke="#B8865A" stroke-width="1.5"/>
-          <ellipse cx="75" cy="198" rx="16" ry="7" fill="#E8C9A0" opacity="0.5"/>
-          <!-- 右脚 -->
-          <ellipse cx="125" cy="200" rx="22" ry="12" fill="#C4956A" stroke="#B8865A" stroke-width="1.5"/>
-          <ellipse cx="125" cy="198" rx="16" ry="7" fill="#E8C9A0" opacity="0.5"/>
-          <!-- 左耳（下垂） -->
-          <g transform="translate(58,40) rotate(-20, 18, 50)">
-            <ellipse cx="18" cy="50" rx="16" ry="48" fill="#D4A574" stroke="#C4956A" stroke-width="1.5"/>
-            <ellipse cx="18" cy="50" rx="10" ry="38" fill="#F0C8C0"/>
-            <animateTransform attributeName="transform" type="rotate" values="-20 18 50;-23 18 50;-17 18 50;-20 18 50" dur="4s" repeatCount="indefinite"/>
-          </g>
-          <!-- 右耳（下垂） -->
-          <g transform="translate(142,40) rotate(20, -18, 50)">
-            <ellipse cx="-18" cy="50" rx="16" ry="48" fill="#D4A574" stroke="#C4956A" stroke-width="1.5"/>
-            <ellipse cx="-18" cy="50" rx="10" ry="38" fill="#F0C8C0"/>
-            <animateTransform attributeName="transform" type="rotate" values="20 -18 50;23 -18 50;17 -18 50;20 -18 50" dur="4s" repeatCount="indefinite" begin="0.5s"/>
-          </g>
-          <!-- 头部 -->
-          <ellipse cx="100" cy="90" rx="52" ry="48" fill="#E8C9A0" stroke="#C4956A" stroke-width="2"/>
-          <ellipse cx="100" cy="80" rx="32" ry="22" fill="#F5EDE0" opacity="0.45"/>
-          <!-- 左眼 -->
-          <g>
-            <ellipse cx="82" cy="88" rx="9" ry="11" fill="#2C1810"/>
-            <ellipse cx="84" cy="84" rx="3.5" ry="4" fill="white"/>
-            <animateTransform attributeName="transform" type="scale" values="1 1;1 0.1;1 1" dur="5s" repeatCount="indefinite" keyTimes="0;0.05;0.1"/>
-          </g>
-          <!-- 右眼 -->
-          <g>
-            <ellipse cx="118" cy="88" rx="9" ry="11" fill="#2C1810"/>
-            <ellipse cx="120" cy="84" rx="3.5" ry="4" fill="white"/>
-            <animateTransform attributeName="transform" type="scale" values="1 1;1 0.1;1 1" dur="5s" repeatCount="indefinite" keyTimes="0;0.05;0.1" begin="0.3s"/>
-          </g>
-          <!-- 鼻子 -->
-          <ellipse cx="100" cy="98" rx="5" ry="3.5" fill="#E88888"/>
-          <!-- 嘴巴 -->
-          <path d="M94 103 Q100 110 106 103" fill="none" stroke="#8B6050" stroke-width="1.5" stroke-linecap="round"/>
-          <!-- 腮红 -->
-          <ellipse cx="70" cy="100" rx="11" ry="7" fill="#F0B8A8" opacity="0.6"/>
-          <ellipse cx="130" cy="100" rx="11" ry="7" fill="#F0B8A8" opacity="0.6"/>
-          <!-- 前爪 -->
-          <ellipse cx="70" cy="178" rx="14" ry="10" fill="#E8C9A0" stroke="#C4956A" stroke-width="1.5"/>
-          <ellipse cx="130" cy="178" rx="14" ry="10" fill="#E8C9A0" stroke="#C4956A" stroke-width="1.5"/>
-        </svg>
+      <div class="bunny-container" id="bunnyImage">
+        <!-- 随机兔子图片会通过 JS 插入 -->
       </div>
     </div>
     <div class="bunny-name" id="bunnyName">奶茶</div>
@@ -599,6 +547,14 @@ function openShop(){
 }
 function renderBunny(){
   const scene=document.getElementById('bunnyScene'),name=document.getElementById('bunnyName'),st=document.getElementById('bunnyStageText');
+  const bunnyImages=[
+    'bunny1.png',
+    'bunny2.png',
+    'bunny3.png'
+  ];
+  const idx=Math.floor(Math.random()*bunnyImages.length);
+  const imgContainer=document.getElementById('bunnyImage');
+  if(imgContainer){imgContainer.innerHTML='<img src="'+bunnyImages[idx]+'" alt="奶茶" style="width:170px;height:auto;border-radius:20px;animation:bunnyBreathe 3s ease-in-out infinite;">';}
   scene.className='bunny-scene';
   if(data.bunny.dead){scene.className+=' bunny-dead';name.textContent='奶茶...';st.textContent='已离开 · 复活需100🪙';}
   else{if(data.bunny.health<30)scene.className+=' bunny-sick';st.textContent=data.bunny.stage==='adult'?'成年兔 · 优雅健康':data.bunny.stage==='teen'?'少年兔 · 活泼成长':'小奶兔 · 健康成长中';name.textContent='奶茶';}
