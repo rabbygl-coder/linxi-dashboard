@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>林夕的个人工作台 🥕</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --bg: #FFF8F0; --card-bg: #FFFFFF;
+  --card-shadow: 0 2px 12px rgba(255,140,50,0.08);
+  --primary: #FF6B1A; --primary-light: #FF8C42;
+  --primary-soft: #FFF0E5; --primary-glow: rgba(255,107,26,0.15);
+  --accent: #FF9F43; --accent-soft: #FFF3E6;
+  --text: #2D1B0E; --text-secondary: #8B6F5C; --text-muted: #BFABA0;
+  --border: #F5E6D8; --border-light: #FAF0E8;
+  --success: #4CAF50; --success-soft: #E8F5E9;
+  --warning: #FF9800; --warning-soft: #FFF3E0;
+  --danger: #F44336; --danger-soft: #FFEBEE;
+  --info: #2196F3; --info-soft: #E3F2FD;
+  --nav-height: 68px;
+  --radius-sm: 8px; --radius: 14px; --radius-lg: 20px; --radius-xl: 24px;
+  --font-xs: 0.7rem; --font-sm: 0.82rem; --font-md: 0.92rem;
+  --font-lg: 1.1rem; --font-xl: 1.35rem; --font-2xl: 1.7rem;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.5;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;max-width:100vw;
+  padding-bottom:calc(var(--nav-height) + 20px);
+}
+.header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,248,240,0.85);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border-light);
+}
+.header-title{font-size:var(--font-lg);font-weight:700;color:var(--primary);display:flex;align-items:center;gap:8px;}
+.header-coins{display:flex;align-items:center;gap:6px;background:var(--primary-soft);padding:6px 14px;border-radius:20px;font-weight:700;color:var(--primary);font-size:var(--font-md);}
+.coin-pop{animation:coinPop 0.4s ease-out;}
+@keyframes coinPop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+.page{display:none;padding:16px;animation:fadeIn 0.3s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border-light);
+  display:flex;align-items:center;justify-content:space-around;
+  z-index:100;padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:none;color:var(--text-muted);cursor:pointer;transition:var(--transition);font-size:var(--font-xs);min-width:52px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.nav-item.active{color:var(--primary);}
+.nav-item .nav-icon{font-size:1.35rem;transition:var(--transition);}
+.nav-item.active .nav-icon{transform:scale(1.15);}
+
+.card{background:var(--card-bg);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px;box-shadow:var(--card-shadow);border:1px solid var(--border-light);transition:var(--transition);}
+.card:hover{box-shadow:0 4px 20px rgba(255,140,50,0.12);}
+.card-title{font-size:var(--font-md);font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:25px;border:none;font-size:var(--font-sm);font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;box-shadow:0 3px 12px var(--primary-glow);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 18px var(--primary-glow);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-secondary{background:var(--primary-soft);color:var(--primary);}
+.btn-outline{background:white;color:var(--primary);border:1.5px solid var(--primary-light);}
+.btn-sm{padding:6px 14px;font-size:var(--font-xs);border-radius:18px;}
+.btn-xs{padding:4px 10px;font-size:0.65rem;border-radius:14px;}
+.btn-danger{background:var(--danger);color:white;}
+.btn-success{background:var(--success);color:white;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;}
+.modal{background:white;border-radius:var(--radius-xl);padding:24px;width:90%;max-width:420px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+.modal-title{font-size:var(--font-lg);font-weight:700;margin-bottom:16px;text-align:center;color:var(--text);}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:center;flex-wrap:wrap;}
+
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:var(--font-sm);font-weight:600;color:var(--text-secondary);margin-bottom:5px;}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:var(--font-md);font-family:inherit;color:var(--text);background:var(--bg);transition:var(--transition);}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+.form-textarea{resize:vertical;min-height:60px;}
+
+.progress-bar{height:10px;background:var(--border-light);border-radius:5px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:5px;transition:width 0.5s ease;}
+
+.sub-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch;touch-action:manipulation;}
+.sub-tab{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:var(--font-sm);font-weight:600;color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:var(--transition);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+.sub-tab:active{transform:scale(0.95);}
+.sub-tab.active{background:var(--primary);color:white;border-color:var(--primary);}
+.sub-page{display:none;}
+.sub-page.active{display:block;animation:fadeIn 0.25s ease;}
+
+.toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center;}
+.toast{padding:10px 20px;border-radius:25px;font-size:var(--font-sm);font-weight:600;animation:toastIn 0.3s ease;box-shadow:0 4px 16px rgba(0,0,0,0.12);}
+.toast-success{background:var(--success);color:white;}
+.toast-info{background:var(--primary);color:white;}
+.toast-warning{background:var(--warning);color:white;}
+.toast-error{background:var(--danger);color:white;}
+@keyframes toastIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Gauge */
+.gauge-container{position:relative;width:160px;height:90px;margin:0 auto;overflow:hidden;}
+.gauge-container svg{width:100%;height:100%;}
+.gauge-value{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:var(--font-2xl);font-weight:800;color:var(--primary);}
+.gauge-label{text-align:center;font-size:var(--font-sm);color:var(--text-secondary);margin-top:-10px;}
+
+/* Calendar */
+.calendar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.calendar-nav-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--primary);transition:var(--transition);}
+.calendar-nav-btn:hover{background:var(--primary-soft);}
+.calendar-month-label{font-weight:700;font-size:var(--font-md);color:var(--text);}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
+.calendar-day-header{font-size:var(--font-xs);color:var(--text-muted);font-weight:600;padding:6px 0;}
+.calendar-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:var(--radius-sm);cursor:pointer;font-size:var(--font-sm);transition:var(--transition);position:relative;border:1.5px solid transparent;min-width:32px;}
+.calendar-day:hover{background:var(--primary-soft);}
+.calendar-day.today{border-color:var(--primary);font-weight:700;}
+.calendar-day.other-month{color:var(--text-muted);opacity:0.4;}
+.calendar-day.has-checkin{background:var(--primary-soft);}
+.calendar-day .day-num{font-size:var(--font-xs);font-weight:600;}
+.calendar-day .day-icons{display:flex;gap:1px;font-size:0.55rem;flex-wrap:wrap;justify-content:center;}
+
+/* Bunny */
+.bunny-scene{text-align:center;padding:10px 0;position:relative;}
+.bunny-container{animation:bunnyBreathe 3s ease-in-out infinite,bunnyHop 5s ease-in-out infinite;}
+@keyframes bunnyBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes bunnyHop{0%,85%,100%{transform:translateY(0)}92%{transform:translateY(-10px)}}
+.bunny-name{font-size:var(--font-lg);font-weight:700;color:var(--primary);margin-top:4px;}
+.bunny-stage-text{font-size:var(--font-xs);color:var(--text-muted);}
+.bunny-sick .bunny-container{animation:bunnyShake 0.4s ease-in-out infinite !important;filter:hue-rotate(-20deg) saturate(0.7);}
+@keyframes bunnyShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.bunny-dead .bunny-container{filter:grayscale(1) opacity(0.4);animation:none !important;}
+
+.stat-bars{margin-top:8px;}
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.stat-icon{font-size:1.1rem;width:22px;text-align:center;}
+.stat-bar-bg{flex:1;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;}
+.stat-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+.stat-bar-fill.hunger{background:linear-gradient(90deg,#FF9800,#FFB74D);}
+.stat-bar-fill.mood{background:linear-gradient(90deg,#E91E63,#F48FB1);}
+.stat-bar-fill.clean{background:linear-gradient(90deg,#2196F3,#64B5F6);}
+.stat-bar-fill.health{background:linear-gradient(90deg,#4CAF50,#81C784);}
+.stat-val{font-size:var(--font-xs);font-weight:700;width:32px;text-align:right;color:var(--text-secondary);}
+
+/* Shop */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.shop-item{padding:12px;border-radius:var(--radius);border:1.5px solid var(--border);cursor:pointer;transition:var(--transition);text-align:center;}
+.shop-item:hover{border-color:var(--primary);background:var(--primary-soft);}
+.shop-item.disabled{opacity:0.4;cursor:not-allowed;}
+.shop-item .shop-icon{font-size:1.6rem;}
+.shop-item .shop-name{font-size:var(--font-sm);font-weight:700;margin:4px 0;}
+.shop-item .shop-effect{font-size:var(--font-xs);color:var(--text-secondary);}
+.shop-item .shop-price{font-size:var(--font-sm);font-weight:700;color:var(--primary);}
+
+/* KPI */
+.kpi-row{display:flex;gap:16px;flex-wrap:wrap;}
+.kpi-card{flex:1;min-width:140px;text-align:center;}
+
+/* Course */
+.course-chapter{margin-bottom:8px;}
+.chapter-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--primary-soft);border-radius:var(--radius);cursor:pointer;font-weight:700;font-size:var(--font-sm);color:var(--primary);transition:var(--transition);}
+.chapter-header:hover{background:#FFE0CC;}
+.chapter-progress{font-size:var(--font-xs);color:var(--text-secondary);}
+.course-list{display:none;padding:4px 0;}
+.course-list.open{display:block;}
+.course-item{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-light);gap:10px;font-size:var(--font-sm);cursor:pointer;transition:var(--transition);border-radius:var(--radius-sm);}
+.course-item:hover{background:var(--bg);}
+.course-item.done{background:var(--success-soft);}
+.course-num{width:28px;height:28px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:var(--font-xs);color:var(--primary);flex-shrink:0;}
+.course-item.done .course-num{background:var(--success);color:white;}
+.course-info{flex:1;min-width:0;}
+.course-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.course-meta{font-size:var(--font-xs);color:var(--text-muted);}
+.course-date{font-size:var(--font-xs);color:var(--text-secondary);padding:4px 10px;border-radius:12px;background:var(--bg);border:1px solid var(--border);cursor:pointer;white-space:nowrap;min-width:70px;text-align:center;}
+.course-date:hover{border-color:var(--primary);}
+.course-date.done-date{background:var(--success-soft);border-color:var(--success);color:var(--success);}
+
+/* Hobby */
+.hobby-top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.hobby-done-scroll{display:flex;gap:12px;overflow-x:auto;padding:8px 0;margin-bottom:16px;-webkit-overflow-scrolling:touch;}
+.hobby-done-card{flex-shrink:0;width:120px;border-radius:var(--radius);overflow:hidden;border:2px solid var(--border);transition:var(--transition);cursor:pointer;}
+.hobby-done-card:hover{border-color:var(--primary);}
+.hobby-done-card img{width:100%;height:90px;object-fit:cover;}
+.hobby-done-card .name{padding:6px;font-size:var(--font-xs);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hobby-project-card{border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;transition:var(--transition);position:relative;}
+.hobby-project-card:hover{border-color:var(--primary);}
+.hobby-project-card.ing{border-color:var(--primary);background:var(--primary-soft);}
+.hobby-project-card.done{opacity:0.75;}
+.hobby-project-card .hobby-img{width:100%;height:140px;object-fit:cover;border-radius:var(--radius-sm);margin-bottom:10px;background:var(--bg);}
+.hobby-project-card .hobby-name{font-weight:700;font-size:var(--font-md);margin-bottom:4px;}
+.hobby-project-card .hobby-meta{font-size:var(--font-xs);color:var(--text-secondary);display:flex;gap:12px;flex-wrap:wrap;}
+.hobby-status-badge{position:absolute;top:10px;right:10px;padding:3px 10px;border-radius:12px;font-size:var(--font-xs);font-weight:700;}
+.hobby-status-badge.pending{background:var(--warning-soft);color:#E65100;}
+.hobby-status-badge.ing{background:var(--info-soft);color:#0D47A1;}
+.hobby-status-badge.done{background:var(--success-soft);color:#1B5E20;}
+
+/* Timer */
+.timer-display{font-size:2rem;font-weight:800;color:var(--primary);text-align:center;padding:10px;font-variant-numeric:tabular-nums;}
+.timer-active{animation:timerPulse 1.5s ease-in-out infinite;}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* Quick checkin */
+.quick-checkin-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+.quick-checkin-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border-radius:var(--radius);border:1.5px solid var(--border);background:white;cursor:pointer;transition:var(--transition);min-width:56px;}
+.quick-checkin-btn:hover{border-color:var(--primary);background:var(--primary-soft);transform:translateY(-2px);}
+.quick-checkin-btn .qc-icon{font-size:1.5rem;}
+.quick-checkin-btn .qc-label{font-size:var(--font-xs);font-weight:600;color:var(--text-secondary);}
+
+/* Dash cards */
+.dash-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dash-card{background:var(--card-bg);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--card-shadow);border:1px solid var(--border-light);cursor:pointer;transition:var(--transition);}
+.dash-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(255,140,50,0.12);}
+.dash-card .dash-icon{font-size:1.8rem;}
+.dash-card .dash-val{font-size:var(--font-xl);font-weight:800;color:var(--primary);margin:4px 0;}
+.dash-card .dash-label{font-size:var(--font-xs);color:var(--text-muted);}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:10px;}
+.empty-state .empty-text{font-size:var(--font-sm);}
+
+.recent-notes{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.recent-note-chip{padding:5px 12px;border-radius:15px;background:var(--primary-soft);color:var(--primary);font-size:var(--font-xs);cursor:pointer;border:1px solid transparent;transition:var(--transition);}
+.recent-note-chip:hover{border-color:var(--primary);background:#FFE0CC;}
+
+/* Supplies */
+.supply-category{margin-bottom:14px;}
+.supply-cat-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--primary-soft);border-radius:var(--radius);font-weight:700;font-size:var(--font-sm);color:var(--primary);flex-wrap:wrap;gap:6px;}
+.supply-warning{color:var(--danger);font-size:var(--font-xs);font-weight:400;}
+.supply-item{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border-light);gap:8px;font-size:var(--font-sm);}
+.supply-item .brand{font-weight:600;}
+.supply-item .stock{color:var(--text-muted);font-size:var(--font-xs);}
+.supply-item .actions{margin-left:auto;display:flex;gap:4px;}
+
+/* TDL */
+.tdl-input-row{display:flex;gap:8px;margin-bottom:12px;}
+.tdl-input-row input{flex:1;}
+.tdl-item{display:flex;align-items:center;padding:10px 12px;gap:10px;border-bottom:1px solid var(--border-light);font-size:var(--font-sm);transition:var(--transition);}
+.tdl-item.done .tdl-text{text-decoration:line-through;color:var(--text-muted);}
+.tdl-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition);font-size:0.7rem;color:transparent;}
+.tdl-check.checked{background:var(--success);border-color:var(--success);color:white;}
+.tdl-text{flex:1;}
+.tdl-del{color:var(--text-muted);cursor:pointer;font-size:var(--font-md);opacity:0;transition:var(--transition);}
+.tdl-item:hover .tdl-del{opacity:1;}
+.tdl-del:hover{color:var(--danger);}
+
+/* KPI records */
+.kpi-records{margin-top:14px;}
+.kpi-record{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-light);font-size:var(--font-xs);gap:8px;}
+.kpi-record .kpi-r-date{color:var(--text-muted);}
+.kpi-record .kpi-r-company{font-weight:600;flex:1;}
+.kpi-record .kpi-r-bd{color:var(--text-secondary);}
+.kpi-record .kpi-r-del{color:var(--text-muted);cursor:pointer;}
+.kpi-record .kpi-r-del:hover{color:var(--danger);}
+
+/* Checkin day list */
+.day-checkin-list{margin-top:10px;}
+.day-checkin-item{display:flex;align-items:center;padding:8px 12px;gap:8px;border-bottom:1px solid var(--border-light);font-size:var(--font-sm);}
+.day-checkin-item .dci-icon{font-size:1.2rem;}
+.day-checkin-item .dci-type{font-weight:600;}
+.day-checkin-item .dci-note{color:var(--text-secondary);flex:1;}
+.day-checkin-item .dci-edit{cursor:pointer;color:var(--text-muted);margin-right:4px;}
+.day-checkin-item .dci-edit:hover{color:var(--primary);}
+.day-checkin-item .dci-del{cursor:pointer;color:var(--text-muted);}
+.day-checkin-item .dci-del:hover{color:var(--danger);}
+
+/* Chart */
+.chart-container{position:relative;width:100%;height:280px;margin:10px 0;}
+.chart-container canvas{width:100%!important;height:100%!important;}
+
+/* All-checkin modal */
+.checkin-all-list{display:flex;flex-direction:column;gap:8px;}
+.checkin-all-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius-sm);border:1px solid var(--border-light);}
+.checkin-all-row .ca-icon{font-size:1.3rem;width:28px;text-align:center;}
+.checkin-all-row .ca-name{font-weight:600;font-size:var(--font-sm);width:50px;}
+.checkin-all-row .ca-input{flex:1;}
+.checkin-all-row .ca-auto{font-size:var(--font-xs);color:var(--text-muted);}
+
+/* TDL link button */
+.tdl-link-btn{font-size:var(--font-xs);color:var(--primary);cursor:pointer;padding:2px 8px;border-radius:10px;border:1px solid var(--primary-light);background:white;transition:var(--transition);}
+.tdl-link-btn:hover{background:var(--primary-soft);}
+.tdl-link-btn.linked{background:var(--primary-soft);color:var(--primary);}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+@media(min-width:768px){
+  .page{max-width:720px;margin:0 auto;padding:20px;}
+  .bottom-nav{max-width:720px;left:50%;transform:translateX(-50%);border-radius:20px 20px 0 0;}
+  .header{max-width:720px;margin:0 auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-title"><span>🥕</span> 林夕的工作台</div>
+  <div class="header-coins" id="headerCoins"><span>🪙</span> <span id="coinDisplay">0</span></div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+<!-- Modal -->
+<div id="modalContainer"></div>
+<noscript><div style="text-align:center;padding:20px;color:red;font-weight:700;">⚠️ JavaScript 未启用，请用浏览器打开此文件而非微信直接打开</div></noscript>
+
+<!-- ========== 仪表盘 ========== -->
+<div class="page active" id="page-dashboard">
+  <!-- 兔子 -->
+  <div class="card" id="bunnyCard">
+    <div class="bunny-scene" id="bunnyScene">
+      <div class="bunny-container">
+        <!-- 动漫风垂耳兔 SVG -->
+        <svg viewBox="0 0 200 220" width="170" height="187" style="display:block;margin:0 auto;">
+          <!-- 身体 -->
+          <ellipse cx="100" cy="155" rx="55" ry="50" fill="#D4A574" stroke="#C4956A" stroke-width="2"/>
+          <ellipse cx="100" cy="145" rx="35" ry="28" fill="#F5EDE0" opacity="0.5"/>
+          <!-- 尾巴 -->
+          <circle cx="148" cy="148" r="16" fill="#F5EDE0" stroke="#D4A574" stroke-width="1.5">
+            <animateTransform attributeName="transform" type="rotate" values="0 148 148;8 148 148;-8 148 148;0 148 148" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <!-- 左脚 -->
+          <ellipse cx="75" cy="200" rx="22" ry="12" fill="#C4956A" stroke="#B8865A" stroke-width="1.5"/>
+          <ellipse cx="75" cy="198" rx="16" ry="7" fill="#E8C9A0" opacity="0.5"/>
+          <!-- 右脚 -->
+          <ellipse cx="125" cy="200" rx="22" ry="12" fill="#C4956A" stroke="#B8865A" stroke-width="1.5"/>
+          <ellipse cx="125" cy="198" rx="16" ry="7" fill="#E8C9A0" opacity="0.5"/>
+          <!-- 左耳（下垂） -->
+          <g transform="translate(58,40) rotate(-20, 18, 50)">
+            <ellipse cx="18" cy="50" rx="16" ry="48" fill="#D4A574" stroke="#C4956A" stroke-width="1.5"/>
+            <ellipse cx="18" cy="50" rx="10" ry="38" fill="#F0C8C0"/>
+            <animateTransform attributeName="transform" type="rotate" values="-20 18 50;-23 18 50;-17 18 50;-20 18 50" dur="4s" repeatCount="indefinite"/>
+          </g>
+          <!-- 右耳（下垂） -->
+          <g transform="translate(142,40) rotate(20, -18, 50)">
+            <ellipse cx="-18" cy="50" rx="16" ry="48" fill="#D4A574" stroke="#C4956A" stroke-width="1.5"/>
+            <ellipse cx="-18" cy="50" rx="10" ry="38" fill="#F0C8C0"/>
+            <animateTransform attributeName="transform" type="rotate" values="20 -18 50;23 -18 50;17 -18 50;20 -18 50" dur="4s" repeatCount="indefinite" begin="0.5s"/>
+          </g>
+          <!-- 头部 -->
+          <ellipse cx="100" cy="90" rx="52" ry="48" fill="#E8C9A0" stroke="#C4956A" stroke-width="2"/>
+          <ellipse cx="100" cy="80" rx="32" ry="22" fill="#F5EDE0" opacity="0.45"/>
+          <!-- 左眼 -->
+          <g>
+            <ellipse cx="82" cy="88" rx="9" ry="11" fill="#2C1810"/>
+            <ellipse cx="84" cy="84" rx="3.5" ry="4" fill="white"/>
+            <animateTransform attributeName="transform" type="scale" values="1 1;1 0.1;1 1" dur="5s" repeatCount="indefinite" keyTimes="0;0.05;0.1"/>
+          </g>
+          <!-- 右眼 -->
+          <g>
+            <ellipse cx="118" cy="88" rx="9" ry="11" fill="#2C1810"/>
+            <ellipse cx="120" cy="84" rx="3.5" ry="4" fill="white"/>
+            <animateTransform attributeName="transform" type="scale" values="1 1;1 0.1;1 1" dur="5s" repeatCount="indefinite" keyTimes="0;0.05;0.1" begin="0.3s"/>
+          </g>
+          <!-- 鼻子 -->
+          <ellipse cx="100" cy="98" rx="5" ry="3.5" fill="#E88888"/>
+          <!-- 嘴巴 -->
+          <path d="M94 103 Q100 110 106 103" fill="none" stroke="#8B6050" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- 腮红 -->
+          <ellipse cx="70" cy="100" rx="11" ry="7" fill="#F0B8A8" opacity="0.6"/>
+          <ellipse cx="130" cy="100" rx="11" ry="7" fill="#F0B8A8" opacity="0.6"/>
+          <!-- 前爪 -->
+          <ellipse cx="70" cy="178" rx="14" ry="10" fill="#E8C9A0" stroke="#C4956A" stroke-width="1.5"/>
+          <ellipse cx="130" cy="178" rx="14" ry="10" fill="#E8C9A0" stroke="#C4956A" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+    <div class="bunny-name" id="bunnyName">奶茶</div>
+    <div class="bunny-stage-text" id="bunnyStageText">小奶兔 · 健康成长中</div>
+    <div class="stat-bars">
+      <div class="stat-row"><span class="stat-icon">🍔</span><div class="stat-bar-bg"><div class="stat-bar-fill hunger" id="hungerBar" style="width:100%"></div></div><span class="stat-val" id="hungerVal">100</span></div>
+      <div class="stat-row"><span class="stat-icon">😊</span><div class="stat-bar-bg"><div class="stat-bar-fill mood" id="moodBar" style="width:100%"></div></div><span class="stat-val" id="moodVal">100</span></div>
+      <div class="stat-row"><span class="stat-icon">🛁</span><div class="stat-bar-bg"><div class="stat-bar-fill clean" id="cleanBar" style="width:100%"></div></div><span class="stat-val" id="cleanVal">100</span></div>
+      <div class="stat-row"><span class="stat-icon">❤️</span><div class="stat-bar-bg"><div class="stat-bar-fill health" id="healthBar" style="width:100%"></div></div><span class="stat-val" id="healthVal">100</span></div>
+    </div>
+    <div style="text-align:center;margin-top:12px;"><button class="btn btn-primary btn-sm" onclick="openShop()">🏪 兔兔商店</button></div>
+  </div>
+
+  <!-- 今日待办 -->
+  <div class="card">
+    <div class="card-title"><span>✅</span> 今日待办</div>
+    <div class="tdl-input-row">
+      <input class="form-input" id="dashTodoInput" placeholder="添加今日待办..." onkeydown="if(event.key==='Enter')addDashTodo()">
+      <button class="btn btn-primary btn-sm" onclick="addDashTodo()">+</button>
+    </div>
+    <div id="dashTodoList"></div>
+  </div>
+</div>
+
+<!-- ========== 工作 ========== -->
+<div class="page" id="page-work">
+  <h2 style="margin-bottom:14px;color:var(--primary);">💼 工作</h2>
+  <div class="card">
+    <div class="card-title"><span>📊</span> KPI 跟踪</div>
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="gauge-container" id="oppGauge"></div>
+        <div class="gauge-label">Opp 目标 24</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="addKPI('opp')">+ Opp 达成</button>
+      </div>
+      <div class="kpi-card">
+        <div class="gauge-container" id="wonGauge"></div>
+        <div class="gauge-label">Won 目标 4</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="addKPI('won')">+ Won 达成</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>📋</span> KPI 达成记录</div>
+    <div id="kpiRecords"><div class="empty-state"><div class="empty-text">暂无达成记录</div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>✅</span> TDL</div>
+    <div class="tdl-input-row">
+      <input class="form-input" id="workTodoInput" placeholder="添加工作待办..." onkeydown="if(event.key==='Enter')addWorkTodo()">
+      <button class="btn btn-primary btn-sm" onclick="addWorkTodo()">+</button>
+    </div>
+    <div id="workTodoList"></div>
+  </div>
+</div>
+
+<!-- ========== 学习 ========== -->
+<div class="page" id="page-study">
+  <h2 style="margin-bottom:14px;color:var(--primary);">📚 学习</h2>
+  <div class="sub-tabs" id="studySubTabs">
+    <div class="sub-tab active" onclick="switchStudySub('dashboard')">📊 Dashboard</div>
+    <div class="sub-tab" onclick="switchStudySub('basic')">📖 经济基础</div>
+    <div class="sub-tab" onclick="switchStudySub('biz')">🏭 工商管理</div>
+  </div>
+  <div class="sub-page active" id="study-dashboard"></div>
+  <div class="sub-page" id="study-basic"></div>
+  <div class="sub-page" id="study-biz"></div>
+</div>
+
+<!-- ========== 生活 ========== -->
+<div class="page" id="page-life">
+  <h2 style="margin-bottom:14px;color:var(--primary);">🌿 生活</h2>
+  <div class="sub-tabs" id="lifeSubTabs">
+    <div class="sub-tab active" onclick="switchLifeSub('supplies')">🧴 日用品</div>
+    <div class="sub-tab" onclick="switchLifeSub('checkin')">✅ 日常打卡</div>
+  </div>
+  <div class="sub-page active" id="life-supplies"></div>
+  <div class="sub-page" id="life-checkin"></div>
+</div>
+
+<!-- ========== 变美 ========== -->
+<div class="page" id="page-beauty">
+  <h2 style="margin-bottom:14px;color:var(--primary);">💪 变美</h2>
+  <div class="card">
+    <div class="card-title"><span>🎯</span> 目标进度</div>
+    <div style="display:flex;gap:20px;align-items:center;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;"><div style="font-size:var(--font-xs);color:var(--text-muted);">初始体重</div><div style="font-weight:700;font-size:var(--font-lg);" id="beautyInitW">-- kg</div><button class="btn btn-xs btn-outline" style="margin-top:4px;" onclick="setBeautyWeight('init')">设置</button></div>
+      <div style="font-size:2rem;">→</div>
+      <div style="text-align:center;"><div style="font-size:var(--font-xs);color:var(--text-muted);">现体重</div><div style="font-weight:800;font-size:var(--font-xl);color:var(--primary);" id="beautyCurW">-- kg</div></div>
+      <div style="font-size:2rem;">→</div>
+      <div style="text-align:center;"><div style="font-size:var(--font-xs);color:var(--text-muted);">目标体重</div><div style="font-weight:700;font-size:var(--font-lg);" id="beautyGoalW">-- kg</div><button class="btn btn-xs btn-outline" style="margin-top:4px;" onclick="setBeautyWeight('goal')">设置</button></div>
+    </div>
+    <div class="progress-bar" style="height:14px;margin-top:14px;"><div class="progress-fill" id="beautyProgressBar" style="width:0%"></div></div>
+    <div style="text-align:center;margin-top:6px;font-size:var(--font-sm);color:var(--text-secondary);" id="beautyProgressText">请设置目标</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>📈</span> 围度趋势</div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><button class="btn btn-primary btn-sm" onclick="addBodyRecord()">+ 添加记录</button></div>
+    <div class="chart-container"><canvas id="bodyChart"></canvas></div>
+    <div style="margin-top:10px;font-size:var(--font-xs);color:var(--text-muted);text-align:center;" id="bodyChartEmpty">暂无数据，请添加围度记录</div>
+    <div id="bodyRecordList" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- ========== 爱好 ========== -->
+<div class="page" id="page-hobby">
+  <h2 style="margin-bottom:14px;color:var(--primary);">🎨 爱好</h2>
+  <div class="sub-tabs" id="hobbySubTabs">
+    <div class="sub-tab active" onclick="switchHobbySub('puzzle')">🧩 拼图</div>
+    <div class="sub-tab" onclick="switchHobbySub('drawing')">🎨 画画</div>
+    <div class="sub-tab" onclick="switchHobbySub('model')">🔧 模型</div>
+    <div class="sub-tab" onclick="switchHobbySub('reading')">📖 阅读</div>
+  </div>
+  <div id="hobbyPages"></div>
+</div>
+
+<!-- ========== 设置 ========== -->
+<div class="page" id="page-settings">
+  <h2 style="margin-bottom:14px;color:var(--primary);">⚙️ 设置</h2>
+  <div class="card">
+    <div class="card-title"><span>💾</span> 数据管理</div>
+    <p style="font-size:var(--font-sm);color:var(--text-secondary);margin-bottom:14px;">数据存储在浏览器本地。导出 JSON 文件备份，换设备时导入恢复。</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="exportData()">📥 导出数据</button>
+      <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📤 导入数据</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>🗑️</span> 危险操作</div>
+    <button class="btn btn-danger btn-sm" onclick="clearAllData()">清除所有数据</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>ℹ️</span> 关于</div>
+    <p style="font-size:var(--font-sm);color:var(--text-secondary);">林夕的个人管理工作台 v1.1</p>
+    <p style="font-size:var(--font-xs);color:var(--text-muted);">🐰 奶茶垂耳兔陪伴每一天 🥕</p>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="switchTab('dashboard')" data-tab="dashboard"><span class="nav-icon">🏠</span>仪表盘</button>
+  <button class="nav-item" onclick="switchTab('work')" data-tab="work"><span class="nav-icon">💼</span>工作</button>
+  <button class="nav-item" onclick="switchTab('study')" data-tab="study"><span class="nav-icon">📚</span>学习</button>
+  <button class="nav-item" onclick="switchTab('life')" data-tab="life"><span class="nav-icon">🌿</span>生活</button>
+  <button class="nav-item" onclick="switchTab('beauty')" data-tab="beauty"><span class="nav-icon">💪</span>变美</button>
+  <button class="nav-item" onclick="switchTab('hobby')" data-tab="hobby"><span class="nav-icon">🎨</span>爱好</button>
+</div>
+
+<script>
+// ==================== DATA LAYER ====================
+const STORAGE_KEY = 'linxi_dashboard_v2';
+const defaultData = {
+  coins: 100,
+  bunny: { hunger: 100, mood: 100, clean: 100, health: 100, lastInteraction: Date.now(), stage: 'baby', dead: false },
+  kpi: { opp: [], won: [] },
+  tdl: { work: [], dash: [] },
+  study: { basic: { courses: [], done: {} }, biz: { courses: [], done: {} } },
+  supplies: [],
+  checkins: {},
+  beauty: { initWeight: null, goalWeight: null, bodyRecords: [] },
+  hobbies: { puzzle: [], drawing: [], model: [], reading: [] },
+  checkinNotes: {}
+};
+let data = JSON.parse(JSON.stringify(defaultData));
+let currentTab = 'dashboard', currentStudySub = 'dashboard', currentLifeSub = 'supplies', currentHobbySub = 'puzzle';
+let checkinViewDate = new Date(), hobbyTimers = {};
+
+// ==================== STORAGE ====================
+function loadData(){
+  try{const s=localStorage.getItem(STORAGE_KEY);if(s){const p=JSON.parse(s);data=deepMerge(defaultData,p);}}catch(e){}
+}
+function saveData(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){}}
+function deepMerge(t,s){const r=JSON.parse(JSON.stringify(t));for(const k in s){if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k]))r[k]=deepMerge(r[k]||{},s[k]);else r[k]=s[k];}return r;}
+
+// ==================== UTILS ====================
+function showToast(m,t='info'){const c=document.getElementById('toastContainer'),d=document.createElement('div');d.className='toast toast-'+t;d.textContent=m;c.appendChild(d);setTimeout(()=>d.remove(),2500);}
+function showModal(title,content,actions){const c=document.getElementById('modalContainer');c.innerHTML='<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-title">'+title+'</div>'+content+(actions?'<div class="modal-actions">'+actions+'</div>':'')+'</div></div>';}
+function closeModal(){document.getElementById('modalContainer').innerHTML='';}
+function formatDate(d){const dt=new Date(d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+function todayStr(){return formatDate(new Date());}
+function addCoins(a){data.coins+=a;updateCoinDisplay();saveData();const d=document.getElementById('coinDisplay');d.classList.add('coin-pop');setTimeout(()=>d.classList.remove('coin-pop'),400);}
+function updateCoinDisplay(){document.getElementById('coinDisplay').textContent=data.coins;}
+
+// ==================== NAV ====================
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelector('.nav-item[data-tab="'+tab+'"]').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(tab==='dashboard')renderDashboard();
+  if(tab==='work')renderWork();
+  if(tab==='study')renderStudy();
+  if(tab==='life')renderLife();
+  if(tab==='beauty')renderBeauty();
+  if(tab==='hobby')renderHobby();
+}
+
+// ==================== BUNNY ====================
+function updateBunnyStats(){
+  const now=Date.now(),elapsed=(now-data.bunny.lastInteraction)/1000/3600;
+  if(data.bunny.dead)return renderBunny();
+  data.bunny.hunger=Math.max(0,data.bunny.hunger-elapsed*5);
+  data.bunny.mood=Math.max(0,data.bunny.mood-elapsed*4);
+  data.bunny.clean=Math.max(0,data.bunny.clean-elapsed*3);
+  const minStat=Math.min(data.bunny.hunger,data.bunny.mood,data.bunny.clean);
+  if(minStat===0)data.bunny.health=Math.max(0,data.bunny.health-elapsed*2);
+  const tc=data.bunny.hunger+data.bunny.mood+data.bunny.clean+data.bunny.health;
+  data.bunny.stage=tc>300?'adult':tc>150?'teen':'baby';
+  if(elapsed>=72&&data.bunny.health<=0)data.bunny.dead=true;
+  data.bunny.lastInteraction=now;
+  saveData();renderBunny();
+}
+function interactBunny(){data.bunny.lastInteraction=Date.now();data.bunny.dead=false;}
+function feedBunny(item){
+  if(data.bunny.dead){if(data.coins>=100){data.coins-=100;data.bunny={hunger:100,mood:100,clean:100,health:100,lastInteraction:Date.now(),stage:'baby',dead:false};updateCoinDisplay();saveData();renderBunny();showToast('🐰 奶茶复活了！花了100金币','success');}else{showToast('金币不足100，无法复活 😢','error');}return;}
+  const shop={boxed_meal:{cost:10,hunger:10,mood:0,clean:0,health:0,name:'工地盒饭',icon:'🍱'},michelin:{cost:50,hunger:50,mood:10,clean:0,health:0,name:'米其林大餐',icon:'🍽️'},yiwu_toy:{cost:10,hunger:0,mood:10,clean:0,health:0,name:'义乌小玩具',icon:'🪀'},premium_toy:{cost:50,hunger:0,mood:60,clean:0,health:0,name:'高级玩具',icon:'🎮'},basic_brush:{cost:10,hunger:0,mood:0,clean:8,health:0,name:'普通毛刷',icon:'🪮'},soft_brush:{cost:60,hunger:0,mood:10,clean:50,health:0,name:'柔软刷刷',icon:'🧹'},medicine:{cost:66,hunger:0,mood:0,clean:0,health:33,name:'兔兔药丸',icon:'💊'}};
+  const s=shop[item];if(!s||data.coins<s.cost){showToast('金币不足！','error');return;}
+  data.coins-=s.cost;data.bunny.hunger=Math.min(100,data.bunny.hunger+s.hunger);data.bunny.mood=Math.min(100,data.bunny.mood+s.mood);data.bunny.clean=Math.min(100,data.bunny.clean+s.clean);data.bunny.health=Math.min(100,data.bunny.health+s.health);
+  interactBunny();updateCoinDisplay();saveData();renderBunny();closeModal();showToast('给奶茶用了'+s.name+'！'+s.icon,'success');
+}
+function openShop(){
+  if(data.bunny.dead){showModal('💀 奶茶去世了...','<p style="text-align:center;color:var(--text-secondary);">奶茶已经离开了我们...</p><p style="text-align:center;color:var(--primary);font-weight:700;">复活费用：100 🪙</p>','<button class="btn btn-primary" onclick="feedBunny(\'boxed_meal\')">💀 复活奶茶（100🪙）</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');return;}
+  const items=[{id:'boxed_meal',name:'工地盒饭',icon:'🍱',cost:10,desc:'饱腹+10'},{id:'michelin',name:'米其林大餐',icon:'🍽️',cost:50,desc:'饱腹+50 心情+10'},{id:'yiwu_toy',name:'义乌小玩具',icon:'🪀',cost:10,desc:'心情+10'},{id:'premium_toy',name:'高级玩具',icon:'🎮',cost:50,desc:'心情+60'},{id:'basic_brush',name:'普通毛刷',icon:'🪮',cost:10,desc:'清洁+8'},{id:'soft_brush',name:'柔软刷刷',icon:'🧹',cost:60,desc:'清洁+50 心情+10'},{id:'medicine',name:'兔兔药丸',icon:'💊',cost:66,desc:'健康+33'}];
+  let h='<div class="shop-grid">';items.forEach(i=>{const d=data.coins<i.cost?'disabled':'';h+='<div class="shop-item '+d+'" onclick="'+ (d?'':"feedBunny('"+i.id+"')") +'"><div class="shop-icon">'+i.icon+'</div><div class="shop-name">'+i.name+'</div><div class="shop-effect">'+i.desc+'</div><div class="shop-price">💰 '+i.cost+'</div></div>';});h+='</div>';
+  showModal('🏪 兔兔商店',h,'<button class="btn btn-outline btn-sm" onclick="closeModal()">关闭</button>');
+}
+function renderBunny(){
+  const scene=document.getElementById('bunnyScene'),name=document.getElementById('bunnyName'),st=document.getElementById('bunnyStageText');
+  scene.className='bunny-scene';
+  if(data.bunny.dead){scene.className+=' bunny-dead';name.textContent='奶茶...';st.textContent='已离开 · 复活需100🪙';}
+  else{if(data.bunny.health<30)scene.className+=' bunny-sick';st.textContent=data.bunny.stage==='adult'?'成年兔 · 优雅健康':data.bunny.stage==='teen'?'少年兔 · 活泼成长':'小奶兔 · 健康成长中';name.textContent='奶茶';}
+  document.getElementById('hungerBar').style.width=data.bunny.hunger+'%';document.getElementById('moodBar').style.width=data.bunny.mood+'%';document.getElementById('cleanBar').style.width=data.bunny.clean+'%';document.getElementById('healthBar').style.width=data.bunny.health+'%';
+  document.getElementById('hungerVal').textContent=Math.round(data.bunny.hunger);document.getElementById('moodVal').textContent=Math.round(data.bunny.mood);document.getElementById('cleanVal').textContent=Math.round(data.bunny.clean);document.getElementById('healthVal').textContent=Math.round(data.bunny.health);
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){updateBunnyStats();updateCoinDisplay();renderDashTodo();}
+function addDashTodo(){
+  const input=document.getElementById('dashTodoInput'),text=input.value.trim();if(!text)return;
+  data.tdl.dash.push({text,done:false,date:todayStr(),id:Date.now()});
+  input.value='';saveData();renderDashTodo();
+}
+function toggleDashTodo(idx){
+  const t=data.tdl.dash[idx];t.done=!t.done;saveData();renderDashTodo();
+  if(t.done){addCoins(10);showToast('待办完成 +10🪙','success');}
+  syncTDLState();
+  if(currentTab==='work')renderWorkTodo();
+}
+function deleteDashTodo(idx){data.tdl.dash.splice(idx,1);saveData();renderDashTodo();}
+function renderDashTodo(){
+  const list=document.getElementById('dashTodoList'),today=todayStr();
+  const items=data.tdl.dash.filter(t=>t.date===today);
+  if(items.length===0){list.innerHTML='<div class="empty-state"><div class="empty-text">今日暂无待办</div></div>';return;}
+  list.innerHTML=items.map((t,i)=>{
+    const realIdx=data.tdl.dash.indexOf(t);
+    return '<div class="tdl-item '+(t.done?'done':'')+'"><div class="tdl-check '+(t.done?'checked':'')+'" onclick="toggleDashTodo('+realIdx+')">✓</div><span class="tdl-text">'+t.text+'</span><span class="tdl-del" onclick="deleteDashTodo('+realIdx+')">×</span></div>';
+  }).join('');
+}
+
+// ==================== WORK ====================
+function renderWork(){renderGauge('oppGauge',data.kpi.opp.length,24,'Opp');renderGauge('wonGauge',data.kpi.won.length,4,'Won');renderKpiRecords();renderWorkTodo();}
+function renderGauge(cid,v,max,label){
+  const c=document.getElementById(cid),pct=Math.min(v/max,1);
+  c.innerHTML='<svg viewBox="0 0 160 100"><defs><linearGradient id="gG'+label+'" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#FF6B1A"/><stop offset="100%" style="stop-color:#FFB74D"/></linearGradient></defs><path d="M 20 90 A 60 60 0 0 1 140 90" fill="none" stroke="#F5E6D8" stroke-width="12" stroke-linecap="round"/><path d="M 20 90 A 60 60 0 0 1 140 90" fill="none" stroke="url(#gG'+label+')" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(pct*188.5)+' 188.5"/></svg><div class="gauge-value">'+v+'/'+max+'</div>';
+}
+function addKPI(type){
+  showModal(type==='opp'?'📊 新增 Opp 达成':'🏆 新增 Won 达成','<div class="form-group"><label class="form-label">公司名称</label><input class="form-input" id="kpiCompany" placeholder="请输入公司名称"></div><div class="form-group"><label class="form-label">BD 信息</label><input class="form-input" id="kpiBD" placeholder="请输入BD信息"></div>','<button class="btn btn-primary" onclick="confirmKPI(\''+type+'\')">确认达成</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');
+}
+function confirmKPI(type){const co=document.getElementById('kpiCompany').value.trim(),bd=document.getElementById('kpiBD').value.trim();if(!co){showToast('请填写公司名称','warning');return;}data.kpi[type].push({company:co,bd,date:todayStr()});closeModal();saveData();renderWork();addCoins(10);showToast((type==='opp'?'Opp':'Won')+' 达成 +10🪙','success');}
+function deleteKPI(type,idx){data.kpi[type].splice(idx,1);saveData();renderWork();}
+function renderKpiRecords(){
+  const c=document.getElementById('kpiRecords'),all=[...data.kpi.opp.map(r=>({...r,type:'Opp',icon:'📊'})),...data.kpi.won.map(r=>({...r,type:'Won',icon:'🏆'}))].sort((a,b)=>b.date.localeCompare(a.date));
+  if(all.length===0){c.innerHTML='<div class="empty-state"><div class="empty-text">暂无达成记录</div></div>';return;}
+  c.innerHTML=all.map(r=>'<div class="kpi-record"><span>'+r.icon+'</span><span class="kpi-r-date">'+r.date+'</span><span style="font-weight:700;color:var(--primary);">'+r.type+'</span><span class="kpi-r-company">'+r.company+'</span><span class="kpi-r-bd">'+(r.bd||'')+'</span><span class="kpi-r-del" onclick="deleteKPI(\''+r.type.toLowerCase()+'\','+(r.type==='Opp'?data.kpi.opp.indexOf(r):data.kpi.won.indexOf(r))+')">×</span></div>').join('');
+}
+
+// ==================== WORK TDL ====================
+function addWorkTodo(){
+  const input=document.getElementById('workTodoInput'),text=input.value.trim();if(!text)return;
+  data.tdl.work.push({text,done:false,date:todayStr(),id:Date.now(),linkedDashId:null});
+  input.value='';saveData();renderWorkTodo();
+}
+function toggleWorkTodo(idx){
+  const t=data.tdl.work[idx];t.done=!t.done;saveData();renderWorkTodo();
+  if(t.done){addCoins(10);showToast('待办完成 +10🪙','success');}
+  syncTDLState();
+  renderDashTodo();
+}
+function deleteWorkTodo(idx){data.tdl.work.splice(idx,1);saveData();renderWorkTodo();}
+function linkToDashboard(idx){
+  const t=data.tdl.work[idx];if(t.linkedDashId){showToast('已关联到仪表盘','info');return;}
+  const newItem={text:t.text,done:t.done,date:todayStr(),id:Date.now(),linkedWorkId:t.id};
+  t.linkedDashId=newItem.id;data.tdl.dash.push(newItem);saveData();renderWorkTodo();renderDashboard();
+  showToast('已添加到仪表盘今日待办','success');
+}
+function syncTDLState(){
+  let changed=false;
+  data.tdl.work.forEach(w=>{if(w.linkedDashId){const d=data.tdl.dash.find(dd=>dd.id===w.linkedDashId);if(d&&w.done!==d.done){d.done=w.done;changed=true;}}});
+  data.tdl.dash.forEach(d=>{if(d.linkedWorkId){const w=data.tdl.work.find(ww=>ww.id===d.linkedWorkId);if(w&&d.done!==w.done){w.done=d.done;changed=true;}}});
+  if(changed)saveData();
+}
+function renderWorkTodo(){
+  const list=document.getElementById('workTodoList');
+  if(data.tdl.work.length===0){list.innerHTML='<div class="empty-state"><div class="empty-text">暂无工作待办</div></div>';return;}
+  list.innerHTML=data.tdl.work.map((t,i)=>'<div class="tdl-item '+(t.done?'done':'')+'"><div class="tdl-check '+(t.done?'checked':'')+'" onclick="toggleWorkTodo('+i+')">✓</div><span class="tdl-text">'+t.text+'</span><button class="tdl-link-btn'+(t.linkedDashId?' linked':'')+'" onclick="linkToDashboard('+i+')">'+(t.linkedDashId?'已关联':'+关联仪表盘')+'</button><span class="tdl-del" onclick="deleteWorkTodo('+i+')">×</span></div>').join('');
+}
+
+// ==================== STUDY ====================
+function switchStudySub(sub){
+  currentStudySub=sub;
+  document.querySelectorAll('#studySubTabs .sub-tab').forEach((t,i)=>{t.classList.toggle('active',(i===0&&sub==='dashboard')||(i===1&&sub==='basic')||(i===2&&sub==='biz'));});
+  document.querySelectorAll('#study .sub-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('study-'+sub).classList.add('active');
+  renderStudy();
+}
+function initBizCourses(){
+  const chapters=[{name:'1.企业战略与经营决策',courses:[['01.第01节课入门导学-考试介绍.flv','35:07'],['02.第02节课入门导学-考情分析与备考建议.flv','36:32'],['03.第03节课第一章第一节企业战略概述.flv','37:13'],['04.第04节课第一章第二节战略管理流程.flv','44:35'],['05.第05节课第一章第三节企业外部环境分析.flv','31:42'],['06.第06节课第一章第四节企业内部环境分析及综合分析.flv','43:03'],['07.第07节课第一章第五节企业成长战略.flv','47:20'],['08.第08节课第一章第六节其他战略类型.flv','35:52'],['09.第09节课第二章第七节企业经营决策（上）.flv','32:24'],['10.第10节课第二章第八节企业经营决策（下）.flv','33:33'],['11.第11节课第二章第九节商业模式分析.flv','31:33']]},{name:'2.公司法人治理结构',courses:[['12.第12节课第二章第一节公司所有者与经营者.flv','50:00'],['13.第13节课第二章第二节股东概述.flv','48:02'],['14.第14节课第二章第三节股东会.flv','44:17'],['15.第15节课第二章第四节董事会（上）.flv','35:49'],['16.第16节课第二章第四节董事会（下）.flv','51:18'],['17.第17节课第二章第六节经理层与监事会.flv','47:56'],['18.第18节课第二章第七节中国特色国家出资公司的治理.flv','39:34']]},{name:'3.市场营销和品牌管理',courses:[['19.第19节课第二章第一节营销环境及营销战略规划.flv','51:22'],['20.第20节课第二章第二节目标市场战略.flv','46:36'],['21.第21节课第二章第三节产品策略与促销策略.flv','50:08'],['22.第22节课第二章第四节定价策略.flv','51:41'],['23.第23节课第二章第五节品牌和品牌战略.flv','47:30']]},{name:'4.分销渠道管理',courses:[['24.第24节课第四章第一节分销渠道的构建.flv','52:44'],['25.第25节课第四章第二节渠道成员、权力管理.flv','51:08'],['26.第26节课第四章第三节渠道冲突管理.flv','22:49'],['27.第27节课第四章第四节分销渠道系统评估.flv','39:44'],['28.第28节课第四章第五节分销渠道发展趋势.flv','30:35']]},{name:'5.生产管理',courses:[['29.第29节课第五章第一节考点：生产能力的概念、种类和影响因素.flv','21:24'],['30.第30节课第五章第一节考点：生产能力核算.flv','41:33'],['31.第31节课第五章第二节生产计划概述.flv','39:19'],['32.第32节课第五章第三节生产作业计划编制.flv','55:30'],['33.第33节课第五章第四节生产控制.flv','18:29'],['34.第34节课第五章第五节生产作业控制.flv','43:56'],['35.第35节课第五章第六节现代生产管理方式.flv','47:54']]},{name:'6.物流管理',courses:[['36.第36节课第六章第一节物流与物流管理概述（一）.flv','48:09'],['37.第37节课第六章第一节物流与物流管理概述（二）.flv','52:39'],['38.第38节课第六章第二节仓储管理.flv','51:13'],['39.第39节课第六章第四节库存管理.flv','47:43'],['40.第40节课第六章第五节运输管理.flv','37:09'],['41.第41节课第六章第六节配送管理.flv','24:28']]},{name:'7.技术创新管理',courses:[['42.第42节课第七章第一节技术创新的特点、分类与模式.flv','55:20'],['43.第43节课第七章第二节技术创新战略.flv','48:00'],['44.第44节课第七章第三节技术创新决策的评估.flv','34:02'],['45.第45节课第七章第四节技术价值的评估方法.flv','41:59'],['46.第46节课第七章第五节技术创新组织.flv','34:23'],['47.第47节课第七章第六节企业研发管理.flv','25:22'],['48.第48节课第七章第七节企业管理创新.flv','36:32']]},{name:'8.人力资源规划与薪酬管理',courses:[['49.第49节课第八章第一节人力资源规划.flv','48:11'],['50.第50节课第八章第二节绩效考核.flv','48:19'],['51.第51节课第八章第三节绩效考核的方法.flv','34:19'],['52.第52节课第八章第四节薪酬管理概述.flv','34:16'],['53.第53节课第八章第五节基本薪酬设计.flv','37:42'],['54.第54节课第八章第六节激励薪酬与福利的设计.flv','24:48']]},{name:'9.企业投融资决策与并购重组',courses:[['55.第55节课第九章第一节一次性收付款项的计算.flv','33:51'],['56.第56节课第九章第二节年金终值与现值.flv','51:15'],['57.第57节课第九章第三节风险价值观念.flv','24:41'],['58.第58节课第九章第四节资本成本率的测算.flv','41:35'],['59.第59节课第九章第五节杠杆理论、资本结构理论及决策.flv','37:06'],['60.第60节课第九章第六节投资现金流量估算.flv','23:04'],['61.第61节课第九章第七节财务指标、项目风险和长期股权投资.flv','38:36'],['62.第62节课第九章第八节并购重组（上）.flv','30:01'],['63.第63节课第九章第八节并购重组（下）.flv','37:44']]},{name:'10.电子商务',courses:[['64.第64节课第十章第一节电子商务概述.flv','38:42'],['65.第65节课第十章第二节电子商务的运作系统.flv','35:54'],['66.第66节课第十章第三节电子支付.flv','22:57'],['67.第67节课第十章第四节网络营销.flv','40:23']]},{name:'11.国际商务运营',courses:[['68.第68节课第十一章第一节国际商务与跨国公司（上）.flv','34:22'],['69.第69节课第十一章第一节国际商务与跨国公司（下）.flv','38:25'],['70.第70节课第十一章第三节国际直接投资业务（上）.flv','22:10'],['71.第71节课第十一章第四节国际直接投资业务（下）.flv','34:21'],['72.第72节课第十一章第五节交易磋商及国际贸易术语.flv','27:37'],['73.第73节课第十一章第六节考点：商品出口的主要业务环节.flv','43:36'],['74.第74节课第十一章第六节考点：商品进口的主要业务环节.flv','19:43']]}];
+  if(data.study.biz.courses.length===0){data.study.biz.courses=chapters;if(Object.keys(data.study.biz.done).length===0){data.study.biz.done={'0-0':'2026-07-30','0-1':'2026-07-30'};}saveData();}
+}
+function renderStudy(){
+  initBizCourses();
+  // Clear all sub-pages first
+  document.getElementById('study-dashboard').innerHTML='';
+  document.getElementById('study-basic').innerHTML='';
+  document.getElementById('study-biz').innerHTML='';
+  // Only render the active one
+  if(currentStudySub==='dashboard')renderStudyDashboard();
+  if(currentStudySub==='biz')renderBizCourses();
+  if(currentStudySub==='basic')renderBasicCourses();
+}
+function renderStudyDashboard(){
+  const examDate=new Date(2026,10,15),now=new Date(),daysLeft=Math.ceil((examDate-now)/(1000*60*60*24));
+  const bizDone=Object.keys(data.study.biz.done).length,basicDone=Object.keys(data.study.basic.done||{}).length;
+  const totalBasic=(data.study.basic.courses||[]).reduce((s,ch)=>s+ch.courses.length,0);
+  const totalDone=bizDone+basicDone,totalAll=74+totalBasic,pct=totalAll>0?Math.round(totalDone/totalAll*100):Math.round(bizDone/74*100);
+  let remainingSec=0;
+  data.study.biz.courses.forEach((ch,chi)=>{ch.courses.forEach((c,ci)=>{if(!data.study.biz.done[chi+'-'+ci]){const p=c[1].split(':');remainingSec+=parseInt(p[0])*60+parseInt(p[1]);}});});
+  (data.study.basic.courses||[]).forEach((ch,chi)=>{ch.courses.forEach((c,ci)=>{if(!(data.study.basic.done||{})[chi+'-'+ci]){const p=c[1].split(':');remainingSec+=parseInt(p[0])*60+parseInt(p[1]);}});});
+  const hrs=Math.floor(remainingSec/3600),mins=Math.floor((remainingSec%3600)/60);
+  document.getElementById('study-dashboard').innerHTML='<div class="dash-cards" style="margin-bottom:14px;"><div class="dash-card"><div class="dash-icon">⏳</div><div class="dash-val">'+daysLeft+'天</div><div class="dash-label">距离考试</div></div><div class="dash-card"><div class="dash-icon">📊</div><div class="dash-val">'+totalDone+'/'+totalAll+'</div><div class="dash-label">课程完成进度</div></div></div><div class="card"><div class="card-title"><span>⏱️</span> 剩余课程总时长</div><div style="font-size:var(--font-xl);font-weight:800;color:var(--primary);text-align:center;">'+hrs+'小时'+mins+'分钟</div></div><div class="card"><div class="card-title"><span>📈</span> 完成进度</div><div class="progress-bar" style="height:14px;"><div class="progress-fill" style="width:'+pct+'%"></div></div><div style="text-align:center;margin-top:8px;font-size:var(--font-sm);color:var(--text-secondary);">'+pct+'%</div></div>';
+}
+function renderBizCourses(){
+  const container=document.getElementById('study-biz');let doneCount=0,html='<div class="card"><div class="card-title"><span>🏭</span> 工商管理 · 74课</div><div style="font-size:var(--font-sm);color:var(--text-secondary);margin-bottom:10px;">已完成：<b id="bizDoneCount">2</b> / 74 · 点击课程标记完成，再次点击修改日期</div></div>';
+  data.study.biz.courses.forEach((ch,chi)=>{const chDone=ch.courses.filter((c,ci)=>data.study.biz.done[chi+'-'+ci]).length;doneCount+=chDone;html+='<div class="course-chapter"><div class="chapter-header" onclick="this.nextElementSibling.classList.toggle(\'open\');this.querySelector(\'.toggle\').textContent=this.nextElementSibling.classList.contains(\'open\')?\'▾\':\'▸\'"><span>'+ch.name+' <span class="toggle">▸</span></span><span class="chapter-progress">'+chDone+'/'+ch.courses.length+'</span></div><div class="course-list">';
+  ch.courses.forEach((c,ci)=>{const key=chi+'-'+ci,doneDate=data.study.biz.done[key],done=!!doneDate;html+='<div class="course-item '+(done?'done':'')+'" onclick="toggleBizCourse('+chi+','+ci+',event)"><div class="course-num">'+(done?'✓':(ci+1))+'</div><div class="course-info"><div class="course-name">'+c[0]+'</div><div class="course-meta">⏱ '+c[1]+'</div></div><div class="course-date '+(done?'done-date':'')+'" onclick="event.stopPropagation();changeBizDate('+chi+','+ci+')">'+(done?doneDate:'点击完成')+'</div></div>';});
+  html+='</div></div>';});
+  container.innerHTML=html;
+}
+function renderBasicCourses(){
+  document.getElementById('study-basic').innerHTML='<div class="card"><div class="card-title"><span>📖</span> 经济基础 · 课程进度</div><div class="empty-state"><div class="empty-icon">📥</div><div class="empty-text">课程数据待导入</div><button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="showToast(\'请提供经济基础课程数据\',\'info\')">导入课程数据</button></div></div>';
+}
+function toggleBizCourse(chi,ci,event){
+  const key=chi+'-'+ci,today=todayStr();
+  if(data.study.biz.done[key]){delete data.study.biz.done[key];saveData();renderStudy();return;}
+  const todayDone=Object.values(data.study.biz.done).filter(d=>d===today).length;
+  data.study.biz.done[key]=today;saveData();let ce=10;if(todayDone>=1)ce+=6*todayDone;addCoins(ce);showToast('课程完成！+'+ce+'🪙','success');renderStudy();
+}
+function changeBizDate(chi,ci){
+  const key=chi+'-'+ci,cur=data.study.biz.done[key]||todayStr();
+  showModal('修改完成日期','<div class="form-group"><label class="form-label">完成日期</label><input class="form-input" type="date" id="bizDateInput" value="'+cur+'"></div>','<button class="btn btn-primary" onclick="confirmBizDate('+chi+','+ci+')">确认</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>'+(data.study.biz.done[key]?'<button class="btn btn-danger btn-sm" onclick="deleteBizDate('+chi+','+ci+')">清除记录</button>':''));
+}
+function confirmBizDate(chi,ci){const date=document.getElementById('bizDateInput').value,key=chi+'-'+ci,wasDone=!!data.study.biz.done[key];data.study.biz.done[key]=date;closeModal();saveData();if(!wasDone){const todayDone=Object.values(data.study.biz.done).filter(d=>d===todayStr()).length;let ce=10;if(todayDone>=2)ce+=6*(todayDone-1);addCoins(ce);showToast('课程完成！+'+ce+'🪙','success');}renderStudy();}
+function deleteBizDate(chi,ci){const key=chi+'-'+ci;delete data.study.biz.done[key];closeModal();saveData();renderStudy();}
+
+// ==================== LIFE ====================
+function switchLifeSub(sub){
+  currentLifeSub=sub;
+  document.querySelectorAll('#lifeSubTabs .sub-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&sub==='supplies')||(i===1&&sub==='checkin')));
+  document.querySelectorAll('#life .sub-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('life-'+sub).classList.add('active');
+  renderLife();
+}
+function renderLife(){
+  // Clear all sub-pages first
+  document.getElementById('life-supplies').innerHTML='';
+  document.getElementById('life-checkin').innerHTML='';
+  // Only render the active one
+  if(currentLifeSub==='supplies')renderSupplies();
+  if(currentLifeSub==='checkin')renderCheckin();
+}
+
+// ==================== SUPPLIES ====================
+function addSupply(){showModal('添加日用品','<div class="form-group"><label class="form-label">品类（大类）</label><input class="form-input" id="supCategory" placeholder="如：卷纸、牙膏"></div><div class="form-group"><label class="form-label">品牌</label><input class="form-input" id="supBrand" placeholder="如：心相印"></div><div class="form-group"><label class="form-label">数量</label><input class="form-input" type="number" id="supQty" value="1" min="1"></div>','<button class="btn btn-primary" onclick="confirmSupply()">添加</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');}
+function confirmSupply(){const cat=document.getElementById('supCategory').value.trim(),brand=document.getElementById('supBrand').value.trim(),qty=parseInt(document.getElementById('supQty').value)||1;if(!cat||!brand){showToast('请填写完整信息','warning');return;}data.supplies.push({category:cat,brand,qty,usageLogs:[],id:Date.now()});closeModal();saveData();renderSupplies();showToast('日用品已添加','success');}
+function useSupply(id){const item=data.supplies.find(s=>s.id===id);if(!item||item.qty<=0)return;item.qty--;item.usageLogs.push({startDate:todayStr(),endDate:null});saveData();renderSupplies();showToast(item.brand+item.category+' 已消耗1个','info');}
+function finishSupply(id,li){const item=data.supplies.find(s=>s.id===id);if(!item)return;item.usageLogs[li].endDate=todayStr();saveData();renderSupplies();}
+function deleteSupply(id){data.supplies=data.supplies.filter(s=>s.id!==id);saveData();renderSupplies();}
+function renderSupplies(){
+  const container=document.getElementById('life-supplies');
+  if(data.supplies.length===0){container.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="btn btn-primary btn-sm" onclick="addSupply()">+ 添加日用品</button></div><div class="empty-state"><div class="empty-text">暂无日用品记录</div></div>';return;}
+  const grouped={};data.supplies.forEach(s=>{if(!grouped[s.category])grouped[s.category]=[];grouped[s.category].push(s);});
+  let html='<div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="btn btn-primary btn-sm" onclick="addSupply()">+ 添加日用品</button></div>';
+  for(const[cat,items]of Object.entries(grouped)){
+    const ts=items.reduce((s,i)=>s+i.qty,0);let td=0,uc=0;items.forEach(i=>{i.usageLogs.filter(l=>l.endDate).forEach(l=>{const s=new Date(l.startDate),e=new Date(l.endDate);td+=(e-s)/(1000*60*60*24);uc++;});});
+    const avgD=uc>0?td/uc:null,dl=avgD?ts*avgD:null,nw=dl!==null&&dl<=7;
+    html+='<div class="supply-category"><div class="supply-cat-header"><span>'+cat+' · 总库存 '+ts+'</span>'+(nw?'<span class="supply-warning">⚠️ 约'+Math.round(dl)+'天后耗尽</span>':'')+(avgD?'<span style="font-size:var(--font-xs);">平均'+avgD.toFixed(1)+'天/个</span>':'')+'</div>';
+    items.forEach(item=>{
+      html+='<div class="supply-item"><span class="brand">'+item.brand+'</span><span class="stock">库存 '+item.qty+'</span><div class="actions"><button class="btn btn-xs btn-outline" onclick="useSupply('+item.id+')" '+(item.qty<=0?'disabled':'')+'>-1</button><button class="btn btn-xs" style="background:var(--danger-soft);color:var(--danger);" onclick="deleteSupply('+item.id+')">×</button></div></div>';
+      item.usageLogs.forEach((l,li)=>{if(!l.endDate)html+='<div class="supply-item" style="background:var(--info-soft);font-size:var(--font-xs);">📍 使用中 · 开始 '+l.startDate+'<button class="btn btn-xs btn-success" style="margin-left:auto;" onclick="finishSupply('+item.id+','+li+')">用完</button></div>';});
+    });
+    html+='</div>';
+  }
+  container.innerHTML=html;
+}
+
+// ==================== CHECKIN ====================
+const checkinItems=[{icon:'⭐',name:'大事件',manual:true},{icon:'📺',name:'看剧',manual:true},{icon:'📻',name:'广播',manual:true},{icon:'🏋️',name:'运动',manual:true},{icon:'🖌️',name:'刷腹',manual:true},{icon:'🎭',name:'面膜',manual:true},{icon:'📖',name:'阅读',manual:false},{icon:'🧩',name:'拼图',manual:false},{icon:'🎨',name:'画画',manual:false},{icon:'🔧',name:'模型',manual:false}];
+function navCheckinMonth(dir){checkinViewDate.setMonth(checkinViewDate.getMonth()+dir);renderCheckin();}
+function renderCheckin(){
+  const container=document.getElementById('life-checkin'),year=checkinViewDate.getFullYear(),month=checkinViewDate.getMonth();
+  const fd=new Date(year,month,1).getDay(),dim=new Date(year,month+1,0).getDate(),today=new Date();
+  let html='<div class="calendar-header"><button class="calendar-nav-btn" onclick="navCheckinMonth(-1)">◀</button><span class="calendar-month-label">'+year+'年'+(month+1)+'月</span><button class="calendar-nav-btn" onclick="navCheckinMonth(1)">▶</button></div><div class="calendar-grid">';
+  ['日','一','二','三','四','五','六'].forEach(d=>{html+='<div class="calendar-day-header">'+d+'</div>';});
+  for(let i=0;i<fd;i++)html+='<div class="calendar-day other-month"></div>';
+  for(let d=1;d<=dim;d++){const ds=formatDate(new Date(year,month,d)),isToday=ds===formatDate(today),hasC=data.checkins[ds]&&data.checkins[ds].length>0;let icons='';if(hasC){const ui=[...new Set(data.checkins[ds].map(c=>c.icon))];icons=ui.slice(0,4).join('');if(ui.length>4)icons+='…';}html+='<div class="calendar-day '+(isToday?'today ':'')+(hasC?'has-checkin':'')+'" onclick="openDayCheckin(\''+ds+'\')"><span class="day-num">'+d+'</span>'+(icons?'<span class="day-icons">'+icons+'</span>':'')+'</div>';}
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+function openDayCheckin(dateStr){
+  let allHtml='<div class="checkin-all-list">';
+  checkinItems.forEach((item,i)=>{
+    const manual=item.manual;
+    allHtml+='<div class="checkin-all-row"><span class="ca-icon">'+item.icon+'</span><span class="ca-name">'+item.name+'</span>'+(manual?'<input class="form-input ca-input" id="ciNote'+i+'" placeholder="备注（可选）">':'<span class="ca-auto">自动同步</span>')+'</div>';
+  });
+  allHtml+='</div>';
+  
+  // Recent notes for each item
+  if(data.checkinNotes){
+    allHtml+='<div style="margin-top:10px;font-size:var(--font-xs);color:var(--text-muted);">💡 点击下方备选快速填写：</div>';
+    checkinItems.forEach((item,i)=>{
+      if(item.manual&&data.checkinNotes[item.icon]&&data.checkinNotes[item.icon].length>0){
+        allHtml+='<div style="margin-top:4px;"><span style="font-size:var(--font-xs);">'+item.icon+' </span>';
+        data.checkinNotes[item.icon].slice(0,3).forEach(n=>{
+          allHtml+='<span class="recent-note-chip" onclick="document.getElementById(\'ciNote'+i+'\').value=\''+n.replace(/'/g,"\\'")+'\'">'+n+'</span>';
+        });
+        allHtml+='</div>';
+      }
+    });
+  }
+  
+  showModal('📅 '+dateStr+' 打卡',allHtml,'<button class="btn btn-primary" onclick="confirmAllCheckin(\''+dateStr+'\')">确认打卡</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');
+}
+
+function confirmAllCheckin(dateStr){
+  if(!data.checkins[dateStr])data.checkins[dateStr]=[];
+  if(!data.checkinNotes)data.checkinNotes={};
+  checkinItems.forEach((item,i)=>{
+    const noteEl=document.getElementById('ciNote'+i);
+    const note=noteEl?noteEl.value.trim():'';
+    if(item.manual&&note){// Only add if manual and has content
+      data.checkins[dateStr].push({icon:item.icon,name:item.name,note,time:new Date().toISOString()});
+      // Save recent note
+      if(!data.checkinNotes[item.icon])data.checkinNotes[item.icon]=[];
+      data.checkinNotes[item.icon]=data.checkinNotes[item.icon].filter(n=>n!==note);
+      data.checkinNotes[item.icon].unshift(note);
+      data.checkinNotes[item.icon]=data.checkinNotes[item.icon].slice(0,5);
+      addCoins(10);
+    }
+  });
+  closeModal();saveData();renderCheckin();showToast('打卡成功！','success');
+}
+
+function editCheckin(dateStr,idx){
+  const c=data.checkins[dateStr][idx];
+  showModal('编辑打卡','<div class="form-group"><label class="form-label">类型</label><input class="form-input" value="'+c.icon+' '+c.name+'" disabled></div><div class="form-group"><label class="form-label">备注</label><input class="form-input" id="editCiNote" value="'+(c.note||'')+'"></div>','<button class="btn btn-primary" onclick="confirmEditCheckin(\''+dateStr+'\','+idx+')">保存</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button><button class="btn btn-danger btn-sm" onclick="deleteCheckin(\''+dateStr+'\','+idx+')">删除</button>');
+}
+function confirmEditCheckin(dateStr,idx){data.checkins[dateStr][idx].note=document.getElementById('editCiNote').value.trim();closeModal();saveData();renderCheckin();showToast('打卡已更新','success');}
+function deleteCheckin(dateStr,idx){data.checkins[dateStr].splice(idx,1);if(data.checkins[dateStr].length===0)delete data.checkins[dateStr];closeModal();saveData();renderCheckin();showToast('打卡已删除','info');}
+
+// ==================== BEAUTY ====================
+function renderBeauty(){
+  const initW=data.beauty.initWeight,goalW=data.beauty.goalWeight,lastR=data.beauty.bodyRecords[data.beauty.bodyRecords.length-1],curW=lastR?lastR.weight:null;
+  document.getElementById('beautyInitW').textContent=initW?initW+' kg':'-- kg';
+  document.getElementById('beautyGoalW').textContent=goalW?goalW+' kg':'-- kg';
+  document.getElementById('beautyCurW').textContent=curW?curW+' kg':'-- kg';
+  if(initW&&goalW&&curW){const pct=Math.max(0,Math.min(100,Math.round((initW-curW)/(initW-goalW)*100)));document.getElementById('beautyProgressBar').style.width=pct+'%';document.getElementById('beautyProgressText').textContent=pct+'% · 还需减 '+(curW-goalW).toFixed(1)+' kg';}
+  renderBodyChart();renderBodyRecords();
+}
+function setBeautyWeight(type){const cur=type==='init'?data.beauty.initWeight:data.beauty.goalWeight,label=type==='init'?'初始体重':'目标体重';showModal('设置'+label,'<div class="form-group"><label class="form-label">'+label+' (kg)</label><input class="form-input" type="number" id="beautyWeightInput" value="'+(cur||'')+'" step="0.1" min="30" max="200"></div>','<button class="btn btn-primary" onclick="confirmBeautyWeight(\''+type+'\')">确认</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');}
+function confirmBeautyWeight(type){const val=parseFloat(document.getElementById('beautyWeightInput').value);if(!val||val<=0){showToast('请输入有效数值','warning');return;}if(type==='init')data.beauty.initWeight=val;else data.beauty.goalWeight=val;closeModal();saveData();renderBeauty();}
+function addBodyRecord(){
+  showModal('添加围度记录','<div class="form-group"><label class="form-label">日期</label><input class="form-input" type="date" id="bodyDate" value="'+todayStr()+'"></div><div class="form-group"><label class="form-label">体重 (kg)</label><input class="form-input" type="number" id="bodyWeight" step="0.1" placeholder="如：60.5"></div><div class="form-group"><label class="form-label">胸围 (cm)</label><input class="form-input" type="number" id="bodyBust" step="0.1" placeholder="可选"></div><div class="form-group"><label class="form-label">腰围 (cm)</label><input class="form-input" type="number" id="bodyWaist" step="0.1" placeholder="可选"></div><div class="form-group"><label class="form-label">肚围 (cm)</label><input class="form-input" type="number" id="bodyBelly" step="0.1" placeholder="可选"></div><div class="form-group"><label class="form-label">臀围 (cm)</label><input class="form-input" type="number" id="bodyHip" step="0.1" placeholder="可选"></div><div class="form-group"><label class="form-label">手臂围 (cm)</label><input class="form-input" type="number" id="bodyArm" step="0.1" placeholder="可选"></div><div class="form-group"><label class="form-label">大腿围 (cm)</label><input class="form-input" type="number" id="bodyThigh" step="0.1" placeholder="可选"></div>','<button class="btn btn-primary" onclick="confirmBodyRecord()">添加</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');
+}
+function confirmBodyRecord(){
+  const date=document.getElementById('bodyDate').value,weight=parseFloat(document.getElementById('bodyWeight').value);if(!weight){showToast('请填写体重','warning');return;}
+  const record={date,weight,bust:parseFloat(document.getElementById('bodyBust').value)||null,waist:parseFloat(document.getElementById('bodyWaist').value)||null,belly:parseFloat(document.getElementById('bodyBelly').value)||null,hip:parseFloat(document.getElementById('bodyHip').value)||null,arm:parseFloat(document.getElementById('bodyArm').value)||null,thigh:parseFloat(document.getElementById('bodyThigh').value)||null};
+  data.beauty.bodyRecords.push(record);data.beauty.bodyRecords.sort((a,b)=>a.date.localeCompare(b.date));closeModal();saveData();renderBeauty();showToast('围度记录已添加','success');
+}
+function deleteBodyRecord(idx){data.beauty.bodyRecords.splice(idx,1);saveData();renderBeauty();}
+function renderBodyChart(){
+  const canvas=document.getElementById('bodyChart'),ctx=canvas.getContext('2d'),records=data.beauty.bodyRecords;
+  if(records.length===0){document.getElementById('bodyChartEmpty').style.display='block';canvas.style.display='none';return;}
+  document.getElementById('bodyChartEmpty').style.display='none';canvas.style.display='block';
+  const container=canvas.parentElement;canvas.width=container.offsetWidth;canvas.height=280;
+  const pad={top:20,right:20,bottom:40,left:50},w=canvas.width-pad.left-pad.right,h=canvas.height-pad.top-pad.bottom;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const keys=['weight','bust','waist','belly','hip','arm','thigh'],colors=['#FF6B1A','#E91E63','#2196F3','#4CAF50','#9C27B0','#FF9800','#00BCD4'],labels=['体重','胸围','腰围','肚围','臀围','手臂围','大腿围'];
+  let allVals=[];keys.forEach(k=>{records.forEach(r=>{if(r[k]!=null)allVals.push(r[k]);});});
+  if(allVals.length===0)return;
+  const minVal=Math.floor(Math.min(...allVals)/5)*5,maxVal=Math.ceil(Math.max(...allVals)/5)*5,range=maxVal-minVal||1;
+  ctx.strokeStyle='#F5E6D8';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=pad.top+h*i/4;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(canvas.width-pad.right,y);ctx.stroke();ctx.fillStyle='#BFABA0';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText((maxVal-range*i/4).toFixed(0),pad.left-8,y+4);}
+  ctx.textAlign='center';const step=records.length>8?Math.floor(records.length/6):1;
+  records.forEach((r,i)=>{if(i%step===0||i===records.length-1){const x=pad.left+w*i/Math.max(records.length-1,1);ctx.fillStyle='#BFABA0';ctx.fillText(r.date.slice(5),x,canvas.height-pad.bottom+16);}});
+  keys.forEach((k,ki)=>{const pts=[];records.forEach((r,i)=>{if(r[k]!=null)pts.push({x:pad.left+w*i/Math.max(records.length-1,1),y:pad.top+h-(r[k]-minVal)/range*h});});if(pts.length<1)return;ctx.strokeStyle=colors[ki];ctx.lineWidth=2;ctx.beginPath();pts.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});ctx.stroke();pts.forEach(p=>{ctx.fillStyle=colors[ki];ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();});});
+  let lx=pad.left,ly=8;keys.forEach((k,ki)=>{ctx.fillStyle=colors[ki];ctx.fillRect(lx,ly,10,10);ctx.fillStyle='#8B6F5C';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText(labels[ki],lx+14,ly+10);lx+=ctx.measureText(labels[ki]).width+24;if(lx>canvas.width-100){lx=pad.left;ly+=16;}});
+}
+function renderBodyRecords(){
+  const container=document.getElementById('bodyRecordList'),records=data.beauty.bodyRecords;if(records.length===0)return;
+  container.innerHTML='<div style="margin-top:10px;font-size:var(--font-sm);font-weight:700;color:var(--text-secondary);">历史记录</div>'+records.slice(-5).reverse().map(r=>'<div class="kpi-record"><span>'+r.date+'</span><span>体重:'+r.weight+'kg</span>'+(r.waist?'<span>腰:'+r.waist+'cm</span>':'')+(r.hip?'<span>臀:'+r.hip+'cm</span>':'')+'<span class="kpi-r-del" onclick="deleteBodyRecord('+records.indexOf(r)+')">×</span></div>').join('');
+}
+
+// ==================== HOBBY ====================
+function switchHobbySub(sub){currentHobbySub=sub;document.querySelectorAll('#hobbySubTabs .sub-tab').forEach((t,i)=>{const idx={puzzle:0,drawing:1,model:2,reading:3}[sub];t.classList.toggle('active',i===idx);});renderHobby();}
+function getHobbyDefaultIcon(sub){return{puzzle:'🧩',drawing:'🎨',model:'🔧',reading:'📖'}[sub]||'📦';}
+function calcTotalDuration(sessions){let t=0;sessions.forEach(s=>{if(s.end)t+=(new Date(s.end)-new Date(s.start))/1000;});return t;}
+function calcActiveDays(sessions){const days=new Set();sessions.forEach(s=>{days.add(formatDate(new Date(s.start)));if(s.end)days.add(formatDate(new Date(s.end)));});return days.size;}
+function formatDuration(sec){const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);if(h>0)return h+'小时'+m+'分钟';return m+'分钟';}
+
+function renderHobby(){
+  const container=document.getElementById('hobbyPages'),sub=currentHobbySub,items=data.hobbies[sub]||[],defaultIcon=getHobbyDefaultIcon(sub);
+  const doneItems=items.filter(i=>i.status==='done'),ingItems=items.filter(i=>i.status==='ing'),pendingItems=items.filter(i=>i.status==='pending');
+  let html='<div class="hobby-top-bar"><span style="font-weight:700;">已完成 '+doneItems.length+' 项</span><button class="btn btn-primary btn-sm" onclick="addHobbyProject(\''+sub+'\')">+ 添加项目</button></div>';
+  // Done scroll (top)
+  if(doneItems.length>0){html+='<div class="hobby-done-scroll">';doneItems.forEach(item=>{html+='<div class="hobby-done-card" onclick="viewHobbyDetail(\''+sub+'\','+item.id+')">'+(item.image?'<img src="'+item.image+'" alt="'+item.name+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">':'')+'<div style="width:100%;height:90px;background:var(--bg);display:'+(item.image?'none':'flex')+';align-items:center;justify-content:center;font-size:2rem;">'+defaultIcon+'</div><div class="name">'+item.name+'</div></div>';});html+='</div>';}else{html+='<div class="empty-state" style="padding:10px;"><div class="empty-text">暂无已完成项目</div></div>';}
+  // Ing projects (pinned at top of card list)
+  if(ingItems.length>0){html+='<div style="font-weight:700;color:var(--primary);margin-bottom:8px;">⚡ 进行中</div>';ingItems.forEach(item=>{html+=renderHobbyCardHTML(item,sub,defaultIcon);});}
+  // Done projects (middle)
+  if(doneItems.length>0){html+='<div style="font-weight:700;color:var(--text-secondary);margin:12px 0 8px;">✅ 已完成</div>';doneItems.forEach(item=>{html+=renderHobbyCardHTML(item,sub,defaultIcon);});}
+  // Pending (bottom)
+  if(pendingItems.length>0){html+='<div style="font-weight:700;color:var(--text-secondary);margin:12px 0 8px;">📋 待开始</div>';pendingItems.forEach(item=>{html+=renderHobbyCardHTML(item,sub,defaultIcon);});}
+  if(items.length===0)html+='<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">还没有项目，点击右上角添加吧</div></div>';
+  container.innerHTML=html;
+}
+
+function renderHobbyCardHTML(item,sub,defaultIcon){
+  const ts=calcTotalDuration(item.sessions),ad=calcActiveDays(item.sessions),isTR=hobbyTimers[item.id]&&!hobbyTimers[item.id].paused;
+  let extraMeta='';if(sub==='reading'&&item.bookType)extraMeta+='<span>📚 '+(item.bookType==='ebook'?'电子书':'纸质书')+'</span>';if(item.reason)extraMeta+='<span>💡 '+item.reason+'</span>';
+  return '<div class="hobby-project-card '+item.status+'" id="hobby-'+item.id+'"><div class="hobby-status-badge '+item.status+'">'+(item.status==='pending'?'待开始':item.status==='ing'?'进行中':'已完成')+'</div>'+(item.image?'<img class="hobby-img" src="'+item.image+'" alt="'+item.name+'" onerror="this.style.display=\'none\';">':'<div class="hobby-img" style="display:flex;align-items:center;justify-content:center;font-size:3rem;">'+defaultIcon+'</div>')+'<div class="hobby-name">'+item.name+'</div><div class="hobby-meta">'+(item.price?'<span>💰 ¥'+item.price+'</span>':'')+(item.channel?'<span>🛒 '+item.channel+'</span>':'')+extraMeta+'<span>⏱ '+formatDuration(ts)+'</span><span>📅 '+ad+'天</span>'+(item.startDate?'<span>开始 '+item.startDate+'</span>':'')+(item.endDate?'<span>结束 '+item.endDate+'</span>':'')+'</div>'+(isTR?'<div class="timer-display timer-active" id="timer-'+item.id+'">计时中...</div>':'')+'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+(item.status==='pending'?'<button class="btn btn-primary btn-xs" onclick="event.stopPropagation();startHobby(\''+sub+'\','+item.id+')">▶ 开始</button>':'')+(item.status==='ing'?'<button class="btn '+(isTR?'btn-danger':'btn-primary')+' btn-xs" onclick="event.stopPropagation();toggleHobbyTimer(\''+sub+'\','+item.id+')">'+(isTR?'⏹ 停止计时':'▶ 开始计时')+'</button><button class="btn btn-success btn-xs" onclick="event.stopPropagation();doneHobby(\''+sub+'\','+item.id+')">✅ 完成</button>':'')+(item.status==='done'?'<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();restartHobby(\''+sub+'\','+item.id+')">🔄 重新开始</button>':'')+'<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();editHobby(\''+sub+'\','+item.id+')">✏️ 编辑</button><button class="btn btn-xs" style="background:var(--danger-soft);color:var(--danger);" onclick="event.stopPropagation();deleteHobby(\''+sub+'\','+item.id+')">🗑️</button></div></div>';
+}
+
+function startHobby(sub,id){const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;item.status='ing';item.startDate=todayStr();saveData();renderHobby();autoCheckinFromHobby(sub,item.name);showToast('项目已开始！','success');}
+function toggleHobbyTimer(sub,id){
+  const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;
+  if(hobbyTimers[id]&&!hobbyTimers[id].paused){const s=hobbyTimers[id];clearInterval(s.interval);s.end=new Date().toISOString();item.sessions.push({start:s.start,end:s.end});hobbyTimers[id]=null;saveData();renderHobby();autoCheckinFromHobby(sub,item.name);showToast('计时结束 · '+formatDuration((new Date(s.end)-new Date(s.start))/1000),'info');}
+  else{const st=new Date().toISOString();hobbyTimers[id]={start:st,end:null,interval:null,paused:false};const upd=()=>{const e=Math.floor((Date.now()-new Date(st))/1000),h=Math.floor(e/3600),m=Math.floor((e%3600)/60),s=e%60;const d=document.getElementById('timer-'+id);if(d)d.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');};hobbyTimers[id].interval=setInterval(upd,1000);upd();renderHobby();}
+}
+function doneHobby(sub,id){const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;if(hobbyTimers[id]&&!hobbyTimers[id].paused){clearInterval(hobbyTimers[id].interval);const s=hobbyTimers[id];item.sessions.push({start:s.start,end:new Date().toISOString()});hobbyTimers[id]=null;}item.status='done';item.endDate=todayStr();saveData();renderHobby();showToast('🎉 项目完成！','success');}
+function restartHobby(sub,id){const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;item.status='ing';item.endDate=null;saveData();renderHobby();showToast('项目已重新开始','info');}
+function deleteHobby(sub,id){if(!confirm('确定要删除这个项目吗？'))return;data.hobbies[sub]=data.hobbies[sub].filter(i=>i.id!==id);if(hobbyTimers[id]){clearInterval(hobbyTimers[id].interval);delete hobbyTimers[id];}saveData();renderHobby();showToast('项目已删除','info');}
+function viewHobbyDetail(sub,id){
+  const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;const ts=calcTotalDuration(item.sessions),ad=calcActiveDays(item.sessions);
+  let sh='<div style="max-height:200px;overflow-y:auto;font-size:var(--font-xs);">';if(item.sessions.length===0)sh+='<div style="text-align:center;color:var(--text-muted);padding:10px;">无计时记录</div>';else item.sessions.slice(-10).reverse().forEach(s=>{const d=(new Date(s.end)-new Date(s.start))/1000;sh+='<div style="padding:4px 0;border-bottom:1px solid var(--border-light);">'+formatDate(new Date(s.start))+' · '+formatDuration(d)+'</div>';});sh+='</div>';
+  showModal(item.name,'<div style="text-align:center;margin-bottom:10px;">'+(item.image?'<img src="'+item.image+'" style="max-width:100%;max-height:150px;border-radius:var(--radius);">':'<div style="font-size:4rem;">'+getHobbyDefaultIcon(sub)+'</div>')+'</div><div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;"><div style="text-align:center;"><div style="font-weight:700;color:var(--primary);">'+formatDuration(ts)+'</div><div style="font-size:var(--font-xs);color:var(--text-muted);">总时长</div></div><div style="text-align:center;"><div style="font-weight:700;color:var(--primary);">'+ad+'</div><div style="font-size:var(--font-xs);color:var(--text-muted);">执行天数</div></div><div style="text-align:center;"><div style="font-weight:700;color:var(--primary);">'+item.sessions.length+'</div><div style="font-size:var(--font-xs);color:var(--text-muted);">计时次数</div></div></div>'+(item.price?'<div style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center;">💰 ¥'+item.price+' · 🛒 '+item.channel+'</div>':'')+(item.reason?'<div style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center;">💡 '+item.reason+'</div>':'')+'<div style="font-weight:700;font-size:var(--font-sm);margin-top:10px;">计时记录</div>'+sh,'<button class="btn btn-outline btn-sm" onclick="closeModal()">关闭</button>');
+}
+
+function editHobby(sub,id){
+  const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;
+  const isReading=sub==='reading',isPaper=item.bookType==='paper';
+  let extraFields='';
+  if(isReading){
+    extraFields='<div class="form-group"><label class="form-label">实体类型</label><select class="form-select" id="editBookType" onchange="toggleBookFields()"><option value="ebook" '+(item.bookType==='ebook'?'selected':'')+'>电子书</option><option value="paper" '+(item.bookType==='paper'?'selected':'')+'>纸质书</option></select></div><div class="form-group" id="editBookPriceGroup" style="display:'+(isPaper?'block':'none')+'"><label class="form-label">价格 (元)</label><input class="form-input" type="number" id="editHobbyPrice" value="'+(item.price||'')+'" step="0.01"></div><div class="form-group" id="editBookChannelGroup" style="display:'+(isPaper?'block':'none')+'"><label class="form-label">购买渠道</label><select class="form-select" id="editHobbyChannel"><option value="淘宝" '+(item.channel==='淘宝'?'selected':'')+'>淘宝</option><option value="抖音" '+(item.channel==='抖音'?'selected':'')+'>抖音</option><option value="小红书" '+(item.channel==='小红书'?'selected':'')+'>小红书</option><option value="其他" '+(item.channel==='其他'?'selected':'')+'>其他</option></select></div><div class="form-group"><label class="form-label">种草原因</label><textarea class="form-textarea" id="editHobbyReason">'+(item.reason||'')+'</textarea></div>';
+  }
+  const ts=calcTotalDuration(item.sessions);
+  showModal('编辑项目','<div class="form-group"><label class="form-label">项目名称</label><input class="form-input" id="editHobbyName" value="'+item.name+'"></div>'+(!isReading?'<div class="form-group"><label class="form-label">价格 (元)</label><input class="form-input" type="number" id="editHobbyPrice" value="'+(item.price||'')+'" step="0.01"></div><div class="form-group"><label class="form-label">购买渠道</label><select class="form-select" id="editHobbyChannel"><option value="淘宝" '+(item.channel==='淘宝'?'selected':'')+'>淘宝</option><option value="抖音" '+(item.channel==='抖音'?'selected':'')+'>抖音</option><option value="小红书" '+(item.channel==='小红书'?'selected':'')+'>小红书</option><option value="其他" '+(item.channel==='其他'?'selected':'')+'>其他</option></select></div>':'')+extraFields+'<div class="form-group"><label class="form-label">图片 URL</label><input class="form-input" id="editHobbyImage" value="'+(item.image||'')+'" placeholder="粘贴图片链接"></div><div class="form-group"><label class="form-label">状态</label><select class="form-select" id="editHobbyStatus"><option value="pending" '+(item.status==='pending'?'selected':'')+'>Pending - 待开始</option><option value="ing" '+(item.status==='ing'?'selected':'')+'>ing - 进行中</option><option value="done" '+(item.status==='done'?'selected':'')+'>Done - 已完成</option></select></div><div class="form-group"><label class="form-label">开始日期</label><input class="form-input" type="date" id="editHobbyStart" value="'+(item.startDate||'')+'"></div><div class="form-group"><label class="form-label">结束日期</label><input class="form-input" type="date" id="editHobbyEnd" value="'+(item.endDate||'')+'"></div><div class="form-group"><label class="form-label">已执行时长（手动调整）</label><div style="display:flex;gap:8px;"><input class="form-input" type="number" id="editHobbyHours" placeholder="小时" value="'+Math.floor(ts/3600)+'" min="0" style="flex:1;"><input class="form-input" type="number" id="editHobbyMins" placeholder="分钟" value="'+Math.floor((ts%3600)/60)+'" min="0" max="59" style="flex:1;"></div></div><div class="form-group"><label class="form-label">补登记 session（可选）</label><div style="display:flex;gap:8px;align-items:center;"><input class="form-input" type="date" id="editSessionDate" style="flex:1;"><input class="form-input" type="number" id="editSessionHours" placeholder="小时" value="0" min="0" style="width:70px;"><input class="form-input" type="number" id="editSessionMins" placeholder="分钟" value="0" min="0" max="59" style="width:70px;"><button class="btn btn-xs btn-primary" onclick="addManualSession(\''+sub+'\','+id+')" type="button">+添加</button></div></div>','<button class="btn btn-primary" onclick="confirmEditHobby(\''+sub+'\','+id+')">保存</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');
+}
+
+// Helper for book type toggle in edit modal
+function toggleBookFields(){
+  const bt=document.getElementById('editBookType').value,pg=document.getElementById('editBookPriceGroup'),cg=document.getElementById('editBookChannelGroup');
+  if(bt==='paper'){pg.style.display='block';cg.style.display='block';}else{pg.style.display='none';cg.style.display='none';}
+}
+
+function addManualSession(sub,id){
+  const date=document.getElementById('editSessionDate').value,h=parseInt(document.getElementById('editSessionHours').value)||0,m=parseInt(document.getElementById('editSessionMins').value)||0;
+  if(!date||(h===0&&m===0)){showToast('请填写日期和时长','warning');return;}
+  const start=new Date(date+'T10:00:00').toISOString(),end=new Date(new Date(date+'T10:00:00').getTime()+(h*3600+m*60)*1000).toISOString();
+  const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;item.sessions.push({start,end});item.sessions.sort((a,b)=>new Date(a.start)-new Date(b.start));
+  document.getElementById('editSessionDate').value='';document.getElementById('editSessionHours').value='0';document.getElementById('editSessionMins').value='0';
+  // Update display
+  const ts=calcTotalDuration(item.sessions);
+  document.getElementById('editHobbyHours').value=Math.floor(ts/3600);document.getElementById('editHobbyMins').value=Math.floor((ts%3600)/60);
+  showToast('Session 已添加','success');
+}
+
+function confirmEditHobby(sub,id){
+  const item=data.hobbies[sub].find(i=>i.id===id);if(!item)return;
+  item.name=document.getElementById('editHobbyName').value.trim()||item.name;
+  item.image=document.getElementById('editHobbyImage').value.trim()||null;
+  item.status=document.getElementById('editHobbyStatus').value;
+  item.startDate=document.getElementById('editHobbyStart').value||null;
+  item.endDate=document.getElementById('editHobbyEnd').value||null;
+  if(sub==='reading'){
+    item.bookType=document.getElementById('editBookType').value;
+    if(item.bookType==='paper'){
+      item.price=parseFloat(document.getElementById('editHobbyPrice').value)||null;
+      item.channel=document.getElementById('editHobbyChannel').value;
+    }else{item.channel='其他';item.price=null;}
+    item.reason=document.getElementById('editHobbyReason')?document.getElementById('editHobbyReason').value.trim()||null:item.reason;
+  }else{
+    item.price=parseFloat(document.getElementById('editHobbyPrice').value)||null;
+    item.channel=document.getElementById('editHobbyChannel').value;
+  }
+  closeModal();saveData();renderHobby();showToast('项目已更新','success');
+}
+
+function addHobbyProject(sub){
+  const isReading=sub==='reading';
+  let extraFields='';
+  if(isReading){
+    extraFields='<div class="form-group"><label class="form-label">实体类型</label><select class="form-select" id="hobbyBookType" onchange="toggleAddBookFields()"><option value="ebook">电子书</option><option value="paper">纸质书</option></select></div><div class="form-group" id="addBookPriceGroup" style="display:none"><label class="form-label">价格 (元)</label><input class="form-input" type="number" id="hobbyPrice" step="0.01" placeholder="可选"></div><div class="form-group" id="addBookChannelGroup" style="display:none"><label class="form-label">购买渠道</label><select class="form-select" id="hobbyChannel"><option value="淘宝">淘宝</option><option value="抖音">抖音</option><option value="小红书">小红书</option><option value="其他">其他</option></select></div><div class="form-group"><label class="form-label">种草原因</label><textarea class="form-textarea" id="hobbyReason" placeholder="为什么想读这本书？"></textarea></div>';
+  }
+  showModal('添加项目','<div class="form-group"><label class="form-label">项目名称</label><input class="form-input" id="hobbyName" placeholder="输入项目名称"></div>'+(!isReading?'<div class="form-group"><label class="form-label">价格 (元)</label><input class="form-input" type="number" id="hobbyPrice" step="0.01" placeholder="可选"></div><div class="form-group"><label class="form-label">购买渠道</label><select class="form-select" id="hobbyChannel"><option value="淘宝">淘宝</option><option value="抖音">抖音</option><option value="小红书">小红书</option><option value="其他">其他</option></select></div>':'')+extraFields+'<div class="form-group"><label class="form-label">图片 URL</label><input class="form-input" id="hobbyImage" placeholder="粘贴图片链接（可选）"></div>','<button class="btn btn-primary" onclick="confirmHobby(\''+sub+'\')">添加</button><button class="btn btn-outline btn-sm" onclick="closeModal()">取消</button>');
+}
+function toggleAddBookFields(){
+  const bt=document.getElementById('hobbyBookType').value,pg=document.getElementById('addBookPriceGroup'),cg=document.getElementById('addBookChannelGroup');
+  if(bt==='paper'){pg.style.display='block';cg.style.display='block';}else{pg.style.display='none';cg.style.display='none';}
+}
+function confirmHobby(sub){
+  const name=document.getElementById('hobbyName').value.trim();if(!name){showToast('请输入项目名称','warning');return;}
+  const item={id:Date.now(),name,image:document.getElementById('hobbyImage').value.trim()||null,status:'pending',sessions:[],startDate:null,endDate:null};
+  if(sub==='reading'){
+    item.bookType=document.getElementById('hobbyBookType').value;
+    if(item.bookType==='paper'){item.price=parseFloat(document.getElementById('hobbyPrice').value)||null;item.channel=document.getElementById('hobbyChannel').value;}
+    else{item.channel='其他';item.price=null;}
+    item.reason=document.getElementById('hobbyReason')?document.getElementById('hobbyReason').value.trim()||null:null;
+  }else{item.price=parseFloat(document.getElementById('hobbyPrice').value)||null;item.channel=document.getElementById('hobbyChannel').value;}
+  data.hobbies[sub].push(item);closeModal();saveData();renderHobby();showToast('项目已添加','success');
+}
+
+// ==================== AUTO CHECKIN ====================
+function autoCheckinFromHobby(sub,projectName){
+  const iconMap={puzzle:'🧩',drawing:'🎨',model:'🔧',reading:'📖'},nameMap={puzzle:'拼图',drawing:'画画',model:'模型',reading:'阅读'};
+  const icon=iconMap[sub],name=nameMap[sub],ds=todayStr();
+  if(!data.checkins[ds])data.checkins[ds]=[];
+  const existing=data.checkins[ds].find(c=>c.icon===icon&&c.note===projectName);if(existing)return;
+  data.checkins[ds].push({icon,name,note:projectName,time:new Date().toISOString(),auto:true});saveData();
+}
+
+// ==================== SETTINGS ====================
+function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='linxi-backup-'+todayStr()+'.json';a.click();URL.revokeObjectURL(url);showToast('数据已导出！','success');}
+function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const imported=JSON.parse(e.target.result);data=deepMerge(defaultData,imported);saveData();showToast('数据导入成功！','success');switchTab(currentTab);}catch(err){showToast('文件格式错误','error');}};reader.readAsText(file);event.target.value='';}
+function clearAllData(){if(confirm('确定要清除所有数据吗？此操作不可恢复！建议先导出备份。')){data=JSON.parse(JSON.stringify(defaultData));saveData();showToast('数据已清除','warning');switchTab('dashboard');}}
+
+// ==================== INIT ====================
+loadData();initBizCourses();updateCoinDisplay();renderDashboard();renderBunny();
+</script>
+</body>
+</html>
