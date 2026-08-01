@@ -513,6 +513,13 @@ nav button:not(.on):hover{background:var(--orange-soft);}
 /* 物品管理：分类按钮 + 表格 */
 .cat-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
 .cat-btns button{font-size:13px;}
+.item-stats{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.item-stat{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;line-height:1;flex:none;}
+.item-stat.plus,.item-stat.minus{width:42px;height:42px;font-size:13px;border:1.5px solid;}
+.item-stat.plus{background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7;}
+.item-stat.minus{background:#FFF1EF;color:#C62828;border-color:#f3b6ad;}
+.item-stat.total{width:50px;height:50px;font-size:15px;background:var(--orange);color:#fff;box-shadow:0 4px 12px rgba(255,107,26,.35);}
+.item-stat.total.neg{background:var(--red);box-shadow:0 4px 12px rgba(198,40,40,.3);}
 .item-table-wrap{max-height:300px;overflow-y:auto;margin-top:12px;border:1px solid var(--orange-line);border-radius:12px;background:#fff;}
 .item-table{width:100%;border-collapse:collapse;table-layout:fixed;}
 .item-table th,.item-table td{padding:8px 6px;font-size:13px;border-bottom:1px solid #FFEADF;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1471,10 +1478,18 @@ function viewItems(){
       <td class="c-act"><button class="btn xs ghost" data-iedit="${r.id}">改</button><button class="btn xs ghost" data-idel="${r.id}">删</button></td>
     </tr>`).join('');
   const catBtns=['全部',...cats].map(c=>`<button class="btn xs ${LIFE_ITEM_CAT===c?'':'ghost'}" data-icat="${c}">${c}</button>`).join('');
+  const plus=list.filter(r=>r.qty>0).reduce((a,r)=>a+r.qty,0);
+  const minus=list.filter(r=>r.qty<0).reduce((a,r)=>a+(-r.qty),0);
+  const total=plus-minus;
+  const stats=`<div class="item-stats">
+      <span class="item-stat plus" title="增加数量合计">+${plus}</span>
+      <span class="item-stat minus" title="减少数量合计">-${minus}</span>
+      <span class="item-stat total ${total<0?'neg':''}" title="增减净值">${total>0?'+':''}${total}</span>
+    </div>`;
   return `
   <div class="card">
     <h3><span class="emo">📦</span>物品管理</h3>
-    <div class="cat-btns">${catBtns}</div>
+    <div class="cat-btns">${catBtns}${stats}</div>
     <div class="todo-add" style="margin-top:4px">
       <input id="itemName" placeholder="物品名称">
       <select id="itemCat">${cats.map(c=>`<option ${c===LIFE_ITEM_CAT_SEL?'selected':''}>${c}</option>`).join('')}</select>
