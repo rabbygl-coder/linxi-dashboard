@@ -556,6 +556,7 @@ let S=null;       // state
 let VIEW='home';  // current view
 let SUB='';       // sub tab (study/life/hobby)
 let LIFE_ITEM_CAT='全部';   // 物品管理当前分类筛选
+let LIFE_ITEM_CAT_SEL='其他'; // 新增/减少时下拉默认分类（点筛选按钮时同步）
 let curQuote='';  // 仪表盘当前展示的金句（进入仪表盘时随机滚动一次）
 let calY=new Date().getFullYear(), calM=new Date().getMonth(); // 月历当前显示的年月（默认本月）
 
@@ -1467,7 +1468,7 @@ function viewItems(){
       <td class="c-cat">${esc(r.category)}</td>
       <td class="c-date">${esc(r.date)}</td>
       <td class="c-note" title="${esc(r.note||'')}">${esc(r.note||'')}</td>
-      <td class="c-act"><button class="btn xs ghost" data-idel="${r.id}">删</button></td>
+      <td class="c-act"><button class="btn xs ghost" data-iedit="${r.id}">改</button><button class="btn xs ghost" data-idel="${r.id}">删</button></td>
     </tr>`).join('');
   const catBtns=['全部',...cats].map(c=>`<button class="btn xs ${LIFE_ITEM_CAT===c?'':'ghost'}" data-icat="${c}">${c}</button>`).join('');
   return `
@@ -1476,7 +1477,7 @@ function viewItems(){
     <div class="cat-btns">${catBtns}</div>
     <div class="todo-add" style="margin-top:4px">
       <input id="itemName" placeholder="物品名称">
-      <select id="itemCat">${cats.map(c=>`<option>${c}</option>`).join('')}</select>
+      <select id="itemCat">${cats.map(c=>`<option ${c===LIFE_ITEM_CAT_SEL?'selected':''}>${c}</option>`).join('')}</select>
     </div>
     <div class="row mt" style="gap:8px;margin-bottom:10px">
       <input id="itemQty" type="number" placeholder="数量" style="max-width:92px" value="1">
@@ -1511,6 +1512,35 @@ function addItem(sign){
 }
 function delItem(id){
   S.life.items=S.life.items.filter(x=>x.id!==id);save();render();
+}
+function editItem(id){
+  const it=S.life.items.find(x=>x.id===id);if(!it)return;
+  const cats=['衣物包','日用品','宝宝用','文具书','其他'];
+  showModal('修改物品',`
+    <div class="row mt" style="gap:8px;flex-direction:column;align-items:stretch">
+      <input id="eItemName" value="${esc(it.name)}" placeholder="物品名称">
+      <div class="row" style="gap:8px">
+        <input id="eItemQty" type="number" value="${it.qty}" style="max-width:92px" title="正数=新增、负数=减少">
+        <select id="eItemCat">${cats.map(c=>`<option ${c===it.category?'selected':''}>${c}</option>`).join('')}</select>
+      </div>
+      <input id="eItemDate" type="date" value="${esc(it.date)}" style="max-width:180px">
+      <input id="eItemNote" value="${esc(it.note||'')}" placeholder="备注（可选）">
+    </div>
+    <div class="row mt" style="gap:8px;justify-content:flex-end">
+      <button class="btn ghost" onclick="closeModal()">取消</button>
+      <button class="btn" onclick="saveItemEdit('${it.id}')">保存</button>
+    </div>`);
+}
+function saveItemEdit(id){
+  const it=S.life.items.find(x=>x.id===id);if(!it)return;
+  const name=$('#eItemName').value.trim();
+  if(!name){toast('名称不能为空');return;}
+  it.name=name;
+  it.qty=parseInt($('#eItemQty').value)||0;
+  it.category=$('#eItemCat').value;
+  it.date=$('#eItemDate').value||today();
+  it.note=$('#eItemNote').value.trim();
+  save();closeModal();render();toast('已保存修改');
 }
 function viewCheckin(){
   const d=today();
@@ -1570,7 +1600,10 @@ function bindLife(){
     el.onclick=()=>openCheckinDay(el.dataset.date);
   });
   document.querySelectorAll('#app .cat-btns button').forEach(b=>{
-    b.onclick=()=>{LIFE_ITEM_CAT=b.dataset.icat;render();};
+    b.onclick=()=>{LIFE_ITEM_CAT=b.dataset.icat;LIFE_ITEM_CAT_SEL=(b.dataset.icat==='全部')?'其他':b.dataset.icat;render();};
+  });
+  document.querySelectorAll('#app .item-table [data-iedit]').forEach(b=>{
+    b.onclick=()=>editItem(b.dataset.iedit);
   });
   document.querySelectorAll('#app .item-table [data-idel]').forEach(b=>{
     b.onclick=()=>delItem(b.dataset.idel);
