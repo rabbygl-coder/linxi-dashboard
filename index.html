@@ -156,6 +156,17 @@
   .deal .btn.won{background:#3FB97A;}
   .empty-hint{font-size:13px;color:var(--text-soft);text-align:center;padding:14px 0;}
 
+  /* 围度趋势·记录表格（竖滚·固定显示最新3行） */
+  .meas-scroll{margin-top:12px;max-height:146px;overflow-y:auto;overflow-x:auto;border:1px solid var(--orange-line);border-radius:12px;-webkit-overflow-scrolling:touch;}
+  .meas-table{border-collapse:collapse;font-size:13px;width:100%;min-width:max-content;}
+  .meas-table thead th{position:sticky;top:0;background:#FFF3E9;color:var(--text-soft);font-weight:700;font-size:12px;text-align:center;padding:9px 8px;border-bottom:2px solid var(--orange-line);z-index:2;white-space:nowrap;}
+  .meas-table tbody td{height:36px;padding:0 8px;border-bottom:1px solid #F3E7DD;text-align:center;vertical-align:middle;white-space:nowrap;color:var(--text-soft);}
+  .meas-table tbody tr:last-child td{border-bottom:none;}
+  .meas-table .mc-date{font-weight:700;color:var(--text);}
+  .meas-table .mc-num{font-variant-numeric:tabular-nums;}
+  .meas-table .mc-empty{color:#C9B9AE;}
+  .meas-table .mc-act .del{font-size:14px;color:#C9B9AE;}
+
   /* Study */
   .study-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
   .stat{background:var(--orange-soft);border-radius:14px;padding:12px;text-align:center;}
@@ -1518,9 +1529,19 @@ function viewBeauty(){
     ${btn||''}
   </div>`;
   const arrow=`<div class="arrow">→</div>`;
-  const history=b.meas.slice().reverse().map(r=>`<div class="log-item">
-    <span>${r.date}</span><span class="muted">${r.weight||'-'}kg · 腰${r.waist||'-'} 臀${r.hip||'-'}</span>
-    <span class="del" data-mdel="${r.date}" style="cursor:pointer">✕</span></div>`).join('');
+  // 围度记录表格：最新在上，未填显示“-”，竖向滚动固定显示最新3行
+  const measCols=[
+    {k:'weight',n:'体重(kg)'},{k:'chest',n:'胸围'},{k:'waist',n:'腰围'},
+    {k:'belly',n:'肚围'},{k:'hip',n:'臀围'},{k:'arm',n:'手臂'},{k:'thigh',n:'大腿'}
+  ];
+  const measRows=b.meas.slice().sort((a,b)=>a.date<b.date?1:-1).map(r=>`<tr>
+    <td class="mc-date">${r.date}</td>
+    ${measCols.map(c=>{const v=r[c.k];return `<td class="mc-num ${v==null?'mc-empty':''}">${v!=null?v:'-'}</td>`;}).join('')}
+    <td class="mc-act"><span class="del" data-mdel="${r.date}" style="cursor:pointer">✕</span></td>
+  </tr>`).join('');
+  const measTable=`<div class="meas-scroll"><table class="meas-table">
+    <thead><tr><th>日期</th>${measCols.map(c=>`<th>${c.n}</th>`).join('')}<th></th></tr></thead>
+    <tbody>${measRows}</tbody></table></div>`;
   return `
   <div class="topbar"><h2>💪 变美</h2></div>
   <div class="card">
@@ -1542,8 +1563,8 @@ function viewBeauty(){
     </div>
     ${b.meas.length===0
       ? `<div class="empty-hint">暂无数据，请添加围度记录</div>`
-      : `<canvas id="measChart" width="640" height="320" style="width:100%;display:block"></canvas>`}
-    <div id="measHistory">${history}</div>
+      : `<canvas id="measChart" width="640" height="320" style="width:100%;display:block"></canvas>
+         ${measTable}`}
   </div>`;
 }
 function setWeight(field){
@@ -1593,7 +1614,7 @@ function bindBeauty(){
   document.querySelectorAll('[data-set]').forEach(el=>el.onclick=()=>setWeight(el.dataset.set));
   const addBtn=document.querySelector('[data-addmeas]');
   if(addBtn)addBtn.onclick=openAddMeas;
-  document.querySelectorAll('#measHistory [data-mdel]').forEach(el=>{
+  document.querySelectorAll('[data-mdel]').forEach(el=>{
     el.onclick=()=>{S.beauty.meas=S.beauty.meas.filter(x=>x.date!==el.dataset.mdel);save();render();};
   });
 }
