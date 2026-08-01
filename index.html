@@ -207,6 +207,14 @@
   .cal-cell .ci-icons{position:absolute;bottom:2px;left:0;right:0;display:flex;flex-wrap:wrap;
     justify-content:center;gap:1px;font-size:13px;line-height:1.1;padding:0 2px;}
 
+  /* 月历·本月打卡统计 */
+  .ci-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .ci-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-width:52px;padding:8px 6px;border-radius:12px;background:var(--orange-soft);
+    border:1px solid rgba(255,217,194,.5);}
+  .ci-stat-ic{font-size:20px;line-height:1.1;}
+  .ci-stat-n{font-size:16px;font-weight:800;color:var(--orange-dark);margin-top:2px;font-variant-numeric:tabular-nums;}
+
   /* checkin list */
   .ci-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--orange-soft);
     margin-bottom:8px;}
@@ -1339,10 +1347,12 @@ function toggleChapter(head){
 
 /* ---------- 生活模块 ---------- */
 function viewLife(){
+  // 默认显示【日常打卡】（SUB 为空或非已知子页时回退到打卡）
+  const sub=(SUB==='checkin'||SUB==='supply')?SUB:'checkin';
   const tabs=`<div class="tabs">
-    <button class="${SUB!=='checkin'?'on':''}" data-lt="supply">🧴 日用品管理</button>
-    <button class="${SUB==='checkin'?'on':''}" data-lt="checkin">✅ 日常打卡</button></div>`;
-  let body=SUB==='checkin'?viewCheckin():viewSupply();
+    <button class="${sub!=='checkin'?'on':''}" data-lt="supply">🧴 日用品管理</button>
+    <button class="${sub==='checkin'?'on':''}" data-lt="checkin">✅ 日常打卡</button></div>`;
+  let body=sub==='checkin'?viewCheckin():viewSupply();
   return `<div class="topbar"><h2>🌿 生活</h2></div>${tabs}${body}`;
 }
 function viewSupply(){
@@ -1430,6 +1440,16 @@ function viewCheckin(){
     </div>
     <p class="sub">点击日期填写当天打卡项（手动项 + 爱好联动自动项）。完成打卡 +10 🪙/天</p>
     ${grid}
+    <div class="sec-title">📊 本月打卡统计（大事件不计入）</div>
+    <div class="ci-stats">${CHECKINS.filter(c=>c.k!=='star').map(c=>{
+      let n=0;
+      for(let dd=1;dd<=days;dd++){
+        const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+        const r=S.life.checkins[ds]&&S.life.checkins[ds][c.k];
+        if(r&&r.done)n++;
+      }
+      return `<div class="ci-stat"><span class="ci-stat-ic">${c.ic}</span><span class="ci-stat-n">${n}</span></div>`;
+    }).join('')}</div>
   </div>`;
 }
 function shiftMonth(delta){
