@@ -504,6 +504,27 @@ nav button:not(.on):hover{background:var(--orange-soft);}
 ::-webkit-scrollbar-thumb{background:rgba(255,107,26,.28);border-radius:8px;}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,107,26,.45);}
 ::-webkit-scrollbar-track{background:transparent;}
+
+/* 本月打卡统计居中 */
+.ci-stats-block{text-align:center;}
+.ci-stats-block .sec-title{text-align:center;}
+.ci-stats-block .ci-stats{justify-content:center;}
+
+/* 物品管理：分类按钮 + 表格 */
+.cat-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.cat-btns button{font-size:13px;}
+.item-table-wrap{max-height:300px;overflow-y:auto;margin-top:12px;border:1px solid var(--orange-line);border-radius:12px;background:#fff;}
+.item-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.item-table th,.item-table td{padding:8px 6px;font-size:13px;border-bottom:1px solid #FFEADF;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.item-table thead th{background:var(--orange-soft);color:var(--orange-dark);position:sticky;top:0;z-index:1;}
+.item-table .c-name{width:22%;}
+.item-table .c-qty{width:13%;}
+.item-table .c-cat{width:16%;}
+.item-table .c-date{width:22%;}
+.item-table .c-note{width:19%;}
+.item-table .c-act{width:8%;text-align:center;}
+.item-table .c-qty.neg{color:var(--red);font-weight:700;}
+.item-table .empty{text-align:center;color:var(--text-soft);padding:18px;}
 </style>
 </head>
 <body>
@@ -534,6 +555,7 @@ const ORANGE='#FF6B1A';
 let S=null;       // state
 let VIEW='home';  // current view
 let SUB='';       // sub tab (study/life/hobby)
+let LIFE_ITEM_CAT='全部';   // 物品管理当前分类筛选
 let curQuote='';  // 仪表盘当前展示的金句（进入仪表盘时随机滚动一次）
 let calY=new Date().getFullYear(), calM=new Date().getMonth(); // 月历当前显示的年月（默认本月）
 
@@ -614,10 +636,12 @@ function defaultState(){
       examDate:'2026-11-15',
       biz:biz,
       economy:[], // 经济基础 待导入
+      plans:[], // 学习计划 {id,text,done,homeId}
     },
     life:{
       supplies:[], // {id,brand,category,qty,usedAt,usedEnd}
       categories:{}, // category -> {predict7}
+      items:[], // 物品管理 {id,name,qty,category,date,note}
       checkins:{}, // date -> {k:{done,note}}
       ciRewarded:{}, // date -> true (已发打卡币)
       ciRecent:{}, // k -> [notes] 最近5条
@@ -667,6 +691,14 @@ function migrate(){
     if(S.work.wonGoal==null)S.work.wonGoal=4;
     if(!Array.isArray(S.work.bdOptions))S.work.bdOptions=['Alex','Joann','Katherine','Liam'];
   }
+  // 学习计划 / 物品管理 字段补齐
+  if(!S.study)S.study={};
+  if(!Array.isArray(S.study.plans))S.study.plans=[];
+  if(!S.life)S.life={};
+  if(!Array.isArray(S.life.items))S.life.items=[];
+  if(S.study.plans)S.study.plans.forEach(p=>{ if(!('homeId' in p))p.homeId=null; });
+  // 今日待办来源标识（src: work/study/null）
+  if(S.todos)S.todos.forEach(x=>{ if(!('wid' in x))x.wid=null; if(!('src' in x))x.src = x.fromWork? 'work': null; });
 }
 /* 持久化：浏览器本地存储（GitHub Pages 为纯静态站点，数据保存于本机浏览器；跨设备同步请用设置页的「导出/导入 JSON」） */
 function persist(){
@@ -813,8 +845,8 @@ function viewHome(){
     <span class="val">${a.v}</span></div>`).join('');
   const todos=S.todos.map(t=>`<div class="todo-item ${t.done?'done':''}" data-tid="${t.id}">
     <div class="chk">${t.done?'✓':''}</div>
-    <div class="txt">${esc(t.text)}${t.fromWork?' <span class="badge">工作</span>':''}</div>
-    ${t.fromWork&&t.wid?`<button class="btn xs ghost today-btn" data-tunlink="${t.id}">再放放</button>`:''}
+    <div class="txt">${esc(t.text)}${t.src==='work'?' <span class="badge">工作</span>':''}${t.src==='study'?' <span class="badge">学习</span>':''}</div>
+    ${t.src&&t.wid?`<button class="btn xs ghost today-btn" data-tunlink="${t.id}">再放放</button>`:''}
     <div class="del" data-del="${t.id}">✕</div></div>`).join('');
   return `
   <div class="home-top">
@@ -864,13 +896,13 @@ function bindView(){
       el.onclick=e=>{
         if(e.target.dataset.del){
           const t=S.todos.find(x=>x.id===e.target.dataset.del);
-          if(t&&t.wid){const tw=S.work.tdl.find(x=>x.id===t.wid);if(tw)tw.homeId=null;} // 解联 TDL
+          if(t&&t.wid){const src=findLinkedSource(t.wid);if(src)src.homeId=null;} // 解联来源项
           S.todos=S.todos.filter(x=>x.id!==e.target.dataset.del);save();render();return;
         }
         if(e.target.dataset.tunlink){
-          // 再放放：取消两边关联并把这条移出今日待办，但不改变 TDL 待办本身的状态
+          // 再放放：取消两边关联并把这条移出今日待办，但不改变来源待办本身的状态
           const tt=S.todos.find(x=>x.id===e.target.dataset.tunlink);
-          if(tt&&tt.wid){const tw=S.work.tdl.find(x=>x.id===tt.wid);if(tw)tw.homeId=null;} // 仅断关联，保留 TDL 状态
+          if(tt&&tt.wid){const src=findLinkedSource(tt.wid);if(src)src.homeId=null;} // 仅断关联，保留来源状态
           S.todos=S.todos.filter(x=>x.id!==e.target.dataset.tunlink);
           save();render();toast('已放回清单，下次再说 😌');return;
         }
@@ -1016,7 +1048,7 @@ function addTdl(){
 /* 把输入的工作待办一键同时加入 TDL 与今日待办并关联 */
 function addTdlToday(){
   const i=$('#tdlInput');const v=i.value.trim();if(!v)return;
-  const todo={id:uid(),text:v,done:false,fromWork:true,wid:null};
+  const todo={id:uid(),text:v,done:false,fromWork:true,src:'work',wid:null};
   const wk={id:uid(),text:v,done:false,homeId:todo.id};
   todo.wid=wk.id;
   S.work.tdl.unshift(wk);
@@ -1026,7 +1058,7 @@ function addTdlToday(){
 /* 把已存在的某条 TDL 推到今日待办（关联） */
 function linkTdlToHome(wid){
   const t=S.work.tdl.find(x=>x.id===wid);if(!t||t.homeId)return;
-  const todo={id:uid(),text:t.text,done:t.done,fromWork:true,wid:t.id};
+  const todo={id:uid(),text:t.text,done:t.done,fromWork:true,src:'work',wid:t.id};
   t.homeId=todo.id;
   S.todos.unshift(todo);
   save();render();toast('已加入今日待办 ✅');
@@ -1037,14 +1069,22 @@ function unlinkTdl(wid){
   if(t.homeId){S.todos=S.todos.filter(x=>x.id!==t.homeId);t.homeId=null;}
   save();render();toast('已放回清单，下次再说 😌');
 }
-/* 双向同步：src='tdl' 表示刚改了 TDL，把完成态写到关联今日待办；src='todo' 反之 */
+/* 找到今日待办关联的「来源项」（工作 TDL 或 学习计划） */
+function findLinkedSource(wid){
+  return (S.work.tdl&&S.work.tdl.find(x=>x.id===wid))
+      || (S.study.plans&&S.study.plans.find(x=>x.id===wid))
+      || null;
+}
+/* 双向同步：src='tdl' 表示刚改了来源项（工作TDL 或 学习计划），把完成态写到关联今日待办；src='todo' 反之 */
 function syncLinked(src,id){
   if(src==='tdl'){
-    const t=S.work.tdl.find(x=>x.id===id);if(!t||!t.homeId)return;
+    let t=S.work.tdl.find(x=>x.id===id);
+    if(!t&&S.study.plans)t=S.study.plans.find(x=>x.id===id);
+    if(!t||!t.homeId)return;
     const todo=S.todos.find(x=>x.id===t.homeId);if(todo)todo.done=t.done;
   }else{
     const x=S.todos.find(y=>y.id===id);if(!x||!x.wid)return;
-    const t=S.work.tdl.find(y=>y.id===x.wid);if(t)t.done=x.done;
+    const t=findLinkedSource(x.wid);if(t)t.done=x.done;
   }
 }
 /* 新增 / 切换 / 编辑 / 删除 Opp/Won 记录（统一 deals 模型，状态 PTA→Accept→Won） */
@@ -1212,13 +1252,30 @@ function viewStudy(){
   }else if(SUB==='biz'){
     body=viewBiz();
   }else{
+    const planListHtml=(S.study.plans||[]).map(t=>`<div class="todo-item ${t.done?'done':''}" data-pid="${t.id}">
+      <div class="chk">${t.done?'✓':''}</div>
+      <div class="txt">${esc(t.text)}</div>
+      ${t.homeId?`<span class="badge">今天就干💪</span><button class="btn xs ghost" data-punlink="${t.id}">再放放</button>`:`<button class="btn xs ghost today-btn" data-plink="${t.id}">+Today</button>`}
+      <div class="del" data-pdel="${t.id}">✕</div></div>`).join('');
     body=`
     <div class="study-stats">
       <div class="stat"><div class="v">${days}</div><div class="l">⏳ 距考试天数<br>${st.examDate}</div></div>
       <div class="stat"><div class="v">${done}/${total}</div><div class="l">📊 课程完成<br>${pct}%</div></div>
       <div class="stat"><div class="v">${remain}</div><div class="l">⏱️ 剩余分钟<br>(约 ${(remain/60).toFixed(1)}h)</div></div>
     </div>
-    ${ringProgress(pct,'课程完成进度')}
+    <div class="home-top">
+      ${ringProgress(pct,'课程完成进度')}
+      <div class="card">
+        <h3><span class="emo">📋</span>学习计划</h3>
+        <div class="todo-add">
+          <input id="planInput" placeholder="学习计划…" onkeydown="if(event.key==='Enter')addPlan()">
+          <button class="btn" onclick="addPlan()">添加</button>
+          <button class="btn ghost xs" onclick="addPlanToday()">+Today</button>
+        </div>
+        <div id="planList">${planListHtml||'<div class="empty">还没有学习计划</div>'}</div>
+        <p class="sub mt">提示：点「+Today」把这条学习计划一键推到仪表盘今日待办（仅加入清单，不自动完成）；关联后显示「今天就干💪」，可点「再放放」移出。勾选完成两边双向同步状态。</p>
+      </div>
+    </div>
     <div class="card mt">
       <h3><span class="emo">🏭</span>工商管理进度速览</h3>
       <p class="sub">共 ${total} 课 / 11 章，主讲：高宽宽（2026 版 优路 74 课精讲）</p>
@@ -1282,6 +1339,20 @@ function bindStudy(){
   document.querySelectorAll('.lesson[data-elid]').forEach(el=>{
     el.onclick=()=>markEco(el.dataset.elid);
   });
+  // 学习计划
+  document.querySelectorAll('#planList .todo-item').forEach(el=>{
+    el.onclick=e=>{
+      const tgt=e.target;
+      if(tgt.dataset.pdel){deletePlan(tgt.dataset.pdel);return;}
+      if(tgt.dataset.plink){linkPlanToHome(tgt.dataset.plink);return;}
+      if(tgt.dataset.punlink){unlinkPlan(tgt.dataset.punlink);return;}
+      const t=S.study.plans.find(x=>x.id===el.dataset.pid);if(!t)return;
+      t.done=!t.done;
+      syncLinked('tdl',t.id); // 来源项改动，同步到关联今日待办（静默，不重复发币）
+      if(t.done)addCoins(10,'完成学习计划');else{S.coins=Math.max(0,S.coins-10);save();renderHeader();}
+      save();render();
+    };
+  });
 }
 function markLesson(id){
   const l=S.study.biz.find(x=>x.id===id);if(!l)return;
@@ -1338,6 +1409,38 @@ function changeEcoDate(l){
 }
 function setEcoDate(id){const l=S.study.economy.find(x=>x.id===id);if(!l)return;const d=$('#newDate').value;if(d)l.date=d;save();closeModal();render();}
 function unmarkEco(id){const l=S.study.economy.find(x=>x.id===id);if(l)l.date=null;save();closeModal();render();}
+/* ---------- 学习计划（可一键同步到仪表盘今日待办，双边同步） ---------- */
+function addPlan(){
+  const i=$('#planInput');const v=i.value.trim();if(!v)return;
+  S.study.plans.unshift({id:uid(),text:v,done:false,homeId:null});
+  i.value='';save();render();
+}
+function addPlanToday(){
+  const i=$('#planInput');const v=i.value.trim();if(!v)return;
+  const todo={id:uid(),text:v,done:false,src:'study',wid:null};
+  const p={id:uid(),text:v,done:false,homeId:todo.id};
+  todo.wid=p.id;
+  S.study.plans.unshift(p);
+  S.todos.unshift(todo);
+  i.value='';save();render();
+}
+function linkPlanToHome(pid){
+  const t=S.study.plans.find(x=>x.id===pid);if(!t||t.homeId)return;
+  const todo={id:uid(),text:t.text,done:t.done,src:'study',wid:t.id};
+  t.homeId=todo.id;
+  S.todos.unshift(todo);
+  save();render();toast('已加入今日待办 ✅');
+}
+function unlinkPlan(pid){
+  const t=S.study.plans.find(x=>x.id===pid);if(!t)return;
+  if(t.homeId){S.todos=S.todos.filter(x=>x.id!==t.homeId);t.homeId=null;}
+  save();render();toast('已放回清单，下次再说 😌');
+}
+function deletePlan(pid){
+  const t=S.study.plans.find(x=>x.id===pid);
+  if(t&&t.homeId)S.todos=S.todos.filter(x=>x.id!==t.homeId);
+  S.study.plans=S.study.plans.filter(x=>x.id!==pid);save();render();
+}
 function toggleChapter(head){
   const lessons=head.nextElementSibling;
   const pg=head.querySelector('.pg');
@@ -1348,69 +1451,66 @@ function toggleChapter(head){
 /* ---------- 生活模块 ---------- */
 function viewLife(){
   // 默认显示【日常打卡】（SUB 为空或非已知子页时回退到打卡）
-  const sub=(SUB==='checkin'||SUB==='supply')?SUB:'checkin';
+  const sub=(SUB==='checkin'||SUB==='items')?SUB:'checkin';
   const tabs=`<div class="tabs">
-    <button class="${sub!=='checkin'?'on':''}" data-lt="supply">🧴 日用品管理</button>
-    <button class="${sub==='checkin'?'on':''}" data-lt="checkin">✅ 日常打卡</button></div>`;
-  let body=sub==='checkin'?viewCheckin():viewSupply();
+    <button class="${sub==='checkin'?'on':''}" data-lt="checkin">✅ 日常打卡</button>
+    <button class="${sub!=='checkin'?'on':''}" data-lt="items">📦 物品管理</button></div>`;
+  let body=sub==='checkin'?viewCheckin():viewItems();
   return `<div class="topbar"><h2>🌿 生活</h2></div>${tabs}${body}`;
 }
-function viewSupply(){
-  // 大类聚合
-  const cats={};
-  S.life.supplies.forEach(s=>{
-    if(s.qty<=0)return;
-    cats[s.category]=cats[s.category]||0;cats[s.category]+=s.qty;
-  });
-  const items=S.life.supplies.map(s=>{
-    const catTotal=cats[s.category]||0;
-    const warn=(catTotal>0)&&(catTotal<=(s.predict7||7));
-    return `<div class="supply ${warn?'warn':''}">
-      <div class="info"><div class="nm">${esc(s.brand)}</div>
-        <div class="meta">${esc(s.category)} · 大类库存 ${catTotal}</div></div>
-      <div class="qty">${s.qty}</div>
-      <button class="btn small ghost" onclick="useSupply('${s.id}')">消耗</button>
-      <button class="btn small" onclick="finishSupply('${s.id}')">用完</button>
-    </div>`;
-  }).join('');
-  // 统计面板：同类平均使用时长
-  const stats=Object.keys(cats).map(c=>{
-    const ss=S.life.supplies.filter(x=>x.category===c&&x.usedEnd);
-    if(!ss.length)return '';
-    const avg=ss.reduce((a,x)=>a+((x.usedEnd-x.usedAt)||0),0)/ss.length/86400000;
-    return `<div class="log-item"><span>${esc(c)} 平均使用</span><span class="muted">${avg.toFixed(1)} 天</span></div>`;
-  }).join('');
+function viewItems(){
+  const cats=['衣物包','日用品','宝宝用','文具书','其他'];
+  const list=LIFE_ITEM_CAT==='全部'?S.life.items:(S.life.items||[]).filter(x=>x.category===LIFE_ITEM_CAT);
+  const rows=list.slice().reverse().map(r=>`<tr>
+      <td class="c-name" title="${esc(r.name)}">${esc(r.name)}</td>
+      <td class="c-qty ${r.qty<0?'neg':''}">${r.qty>0?'+':''}${r.qty}</td>
+      <td class="c-cat">${esc(r.category)}</td>
+      <td class="c-date">${esc(r.date)}</td>
+      <td class="c-note" title="${esc(r.note||'')}">${esc(r.note||'')}</td>
+      <td class="c-act"><button class="btn xs ghost" data-idel="${r.id}">删</button></td>
+    </tr>`).join('');
+  const catBtns=['全部',...cats].map(c=>`<button class="btn xs ${LIFE_ITEM_CAT===c?'':'ghost'}" data-icat="${c}">${c}</button>`).join('');
   return `
   <div class="card">
-    <h3><span class="emo">🧴</span>日用品管理</h3>
-    <div class="todo-add">
-      <input id="supBrand" placeholder="品牌，如：心相印卷纸">
-      <button class="btn" onclick="addSupply()">添加</button>
+    <h3><span class="emo">📦</span>物品管理</h3>
+    <div class="cat-btns">${catBtns}</div>
+    <div class="todo-add" style="margin-top:4px">
+      <input id="itemName" placeholder="物品名称">
+      <select id="itemCat">${cats.map(c=>`<option>${c}</option>`).join('')}</select>
     </div>
-    <div class="row mt" style="margin-bottom:10px">
-      <input id="supCat" placeholder="大类，如：卷纸">
-      <input id="supQty" type="number" placeholder="数量" style="max-width:80px">
+    <div class="row mt" style="gap:8px;margin-bottom:10px">
+      <input id="itemQty" type="number" placeholder="数量" style="max-width:92px" value="1">
+      <input id="itemDate" type="date" value="${today()}" style="max-width:150px">
+      <input id="itemNote" placeholder="备注（可选）" style="flex:1">
     </div>
-    <div id="supplyList">${items||'<div class="empty">还没有日用品，先添加吧</div>'}</div>
-    ${stats?`<div class="sec-title">📊 统计面板（平均使用时长）</div>${stats}`:''}
-    <p class="sub mt">消耗 -1；用完记录结束时间并算时长；大类总库存≤预测7天用量时高亮提醒。</p>
+    <div class="row" style="gap:8px">
+      <button class="btn" onclick="addItem(1)">➕ 新增</button>
+      <button class="btn ghost" onclick="addItem(-1)">➖ 减少</button>
+    </div>
+    <div class="item-table-wrap">
+      <table class="item-table">
+        <thead><tr>
+          <th class="c-name">名称</th><th class="c-qty">数量</th><th class="c-cat">分类</th>
+          <th class="c-date">日期</th><th class="c-note">备注</th><th class="c-act">操作</th>
+        </tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="empty">还没有记录，点上方按钮添加</td></tr>'}</tbody>
+      </table>
+    </div>
   </div>`;
 }
-function addSupply(){
-  const b=$('#supBrand').value.trim();const c=$('#supCat').value.trim();const q=parseInt($('#supQty').value)||1;
-  if(!b||!c)return;
-  S.life.supplies.unshift({id:uid(),brand:b,category:c,qty:q,usedAt:null,usedEnd:null,predict7:7});
-  $('#supBrand').value='';$('#supCat').value='';$('#supQty').value='';
+function addItem(sign){
+  const name=$('#itemName').value.trim();
+  const cat=$('#itemCat').value;
+  let q=Math.abs(parseInt($('#itemQty').value)||1)*sign;   // 新增为正、减少为负
+  const date=$('#itemDate').value||today();
+  const note=$('#itemNote').value.trim();
+  if(!name){toast('先填物品名称');return;}
+  S.life.items.unshift({id:uid(),name,qty:q,category:cat,date,note});
+  $('#itemName').value='';$('#itemNote').value='';$('#itemQty').value='1';
   save();render();
 }
-function useSupply(id){
-  const s=S.life.supplies.find(x=>x.id===id);if(!s||s.qty<=0)return;
-  s.qty--;if(!s.usedAt)s.usedAt=Date.now();save();render();
-}
-function finishSupply(id){
-  const s=S.life.supplies.find(x=>x.id===id);if(!s)return;
-  s.qty=0;s.usedEnd=Date.now();if(!s.usedAt)s.usedAt=s.usedEnd;save();render();
-  toast('已记录使用时长');
+function delItem(id){
+  S.life.items=S.life.items.filter(x=>x.id!==id);save();render();
 }
 function viewCheckin(){
   const d=today();
@@ -1438,9 +1538,10 @@ function viewCheckin(){
       <button class="icon-btn" onclick="shiftMonth(1)" title="下个月">›</button>
       ${isThisMonth?'':'<button class="btn xs ghost today-btn" onclick="gotoThisMonth()">今天</button>'}
     </div>
-    <p class="sub">点击日期填写当天打卡项（手动项 + 爱好联动自动项）。完成打卡 +10 🪙/天</p>
+    <p class="sub">点击日期填写当天打卡项，完成打卡 +10 🪙/天</p>
     ${grid}
-    <div class="sec-title">📊 本月打卡统计（大事件不计入）</div>
+    <div class="ci-stats-block">
+    <div class="sec-title">📊 本月打卡统计</div>
     <div class="ci-stats">${CHECKINS.filter(c=>c.k!=='star').map(c=>{
       let n=0;
       for(let dd=1;dd<=days;dd++){
@@ -1450,6 +1551,7 @@ function viewCheckin(){
       }
       return `<div class="ci-stat"><span class="ci-stat-ic">${c.ic}</span><span class="ci-stat-n">${n}</span></div>`;
     }).join('')}</div>
+  </div>
   </div>`;
 }
 function shiftMonth(delta){
@@ -1467,7 +1569,12 @@ function bindLife(){
   document.querySelectorAll('.cal-cell[data-date]').forEach(el=>{
     el.onclick=()=>openCheckinDay(el.dataset.date);
   });
-  document.querySelectorAll('#supplyList .supply')&&0;
+  document.querySelectorAll('#app .cat-btns button').forEach(b=>{
+    b.onclick=()=>{LIFE_ITEM_CAT=b.dataset.icat;render();};
+  });
+  document.querySelectorAll('#app .item-table [data-idel]').forEach(b=>{
+    b.onclick=()=>delItem(b.dataset.idel);
+  });
 }
 function openCheckinDay(date){
   const rec=S.life.checkins[date]||{};
