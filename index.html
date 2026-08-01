@@ -280,12 +280,21 @@
   .proj .p-meta{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .proj .p-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:nowrap;}
   /* 爱好项目分栏：默认一行 4 个，窄屏自适应 */
-  #projList{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:start;}
-  #projList .proj{margin-bottom:0;}
+  /* 爱好项目分栏：默认一行 4 个。用 minmax(0,1fr) 让列可收缩，避免内容最小宽度把 4 列撑破导致溢出/显示不全 */
+  #projList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:start;}
+  #projList .proj{margin-bottom:0;min-width:0;}
   #projList .empty{grid-column:1 / -1;}
-  @media (max-width:1080px){#projList{grid-template-columns:repeat(3,1fr);}}
-  @media (max-width:800px){#projList{grid-template-columns:repeat(2,1fr);}}
-  @media (max-width:480px){#projList{grid-template-columns:1fr;}}
+  @media (max-width:1200px){#projList{grid-template-columns:repeat(3,minmax(0,1fr));}}
+  @media (max-width:820px){#projList{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  /* 手机：保持 2 列（不再退回 1 列），并压缩卡片让 4 个按钮换行不溢出 */
+  @media (max-width:560px){
+    #projList{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+    .proj .thumb{width:44px;height:44px;font-size:20px;border-radius:9px;}
+    .proj .p-info{height:44px;}
+    .proj .p-name{font-size:15px;}
+    .proj .p-actions{flex-wrap:wrap;}
+    .proj .p-actions .btn{margin:1px;}
+  }
   .badge{font-size:11px;background:var(--orange-soft);color:var(--orange-dark);border-radius:8px;padding:2px 8px;margin-right:4px;}
 
   /* modal */
