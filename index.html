@@ -182,6 +182,15 @@
     color:var(--text-soft);position:relative;}
   .lesson.done{background:var(--orange);color:#fff;border-color:var(--orange);}
   .lesson .d{font-size:9px;margin-top:2px;opacity:.85;}
+  .econ-list{margin-top:10px;max-height:62vh;overflow-y:auto;}
+  .econ-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid #FFEADF;border-radius:8px;cursor:pointer;}
+  .econ-row:hover{background:#FFF7F0;}
+  .econ-row.done{background:#EAF7EE;}
+  .econ-row.done .ename{text-decoration:line-through;color:var(--text-soft);}
+  .econ-row .eidx{width:24px;text-align:center;color:var(--text-soft);font-size:12px;flex:none;}
+  .econ-row .ename{flex:1;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .econ-row .emins{flex:none;font-size:11px;color:var(--orange-dark);background:var(--orange-soft);padding:1px 7px;border-radius:9px;}
+  .econ-row .d{flex:none;font-size:11px;color:#2E7D32;}
 
   /* Life supplies */
   .supply{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--orange-soft);
@@ -249,20 +258,34 @@
   .hobby-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;}
   .hobby-tabs button{flex:0 0 auto;padding:8px 14px;border-radius:12px;background:var(--orange-soft);font-weight:600;color:var(--text-soft);}
   .hobby-tabs button.on{background:var(--orange);color:#fff;}
-  .proj{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);
-    border-left:5px solid var(--orange-line);}
-  .proj.ing{border-left-color:var(--blue);}
-  .proj.done{border-left-color:var(--green);}
-  .proj .p-top{display:flex;gap:10px;align-items:center;}
+  .proj{display:flex;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+  /* 左侧竖排状态标签（微软雅黑） */
+  .proj .p-tab{width:22px;flex-shrink:0;writing-mode:vertical-rl;text-orientation:upright;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Microsoft YaHei','微软雅黑',sans-serif;font-size:12px;font-weight:500;letter-spacing:2px;color:#fff;}
+  .proj.Pending{background:#FFF6EE;}
+  .proj.Pending .p-tab{background:var(--orange);}
+  .proj.ing{background:#EAF3FD;}
+  .proj.ing .p-tab{background:var(--blue);}
+  .proj.done{background:#EAF7EF;}
+  .proj.done .p-tab{background:var(--green);}
+  .proj .p-body{flex:1;min-width:0;padding:10px 12px;}
+  .proj .p-top{display:flex;gap:10px;align-items:stretch;}
   .proj .thumb{width:54px;height:54px;border-radius:10px;background:var(--orange-soft);object-fit:cover;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--orange);}
-  .proj .p-info{flex:1;min-width:0;}
-  .proj .p-name{font-weight:700;font-size:15px;}
-  .proj .p-meta{font-size:12px;color:var(--text-soft);}
-  .proj .p-status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--orange-soft);color:var(--text-soft);}
-  .proj.ing .p-status{background:#E4F0FB;color:var(--blue);}
-  .proj.done .p-status{background:#E6F6EE;color:var(--green);}
-  .proj .p-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  /* 右侧两行：缩略图与文字块上下齐平 */
+  .proj .p-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;height:54px;}
+  .proj .p-name-row{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0;}
+  .proj .p-name{flex:1;min-width:0;font-weight:700;font-size:16px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .proj .p-meta{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .proj .p-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:nowrap;}
+  /* 爱好项目分栏：默认一行 4 个，窄屏自适应 */
+  #projList{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:start;}
+  #projList .proj{margin-bottom:0;}
+  #projList .empty{grid-column:1 / -1;}
+  @media (max-width:1080px){#projList{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:800px){#projList{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:480px){#projList{grid-template-columns:1fr;}}
   .badge{font-size:11px;background:var(--orange-soft);color:var(--orange-dark);border-radius:8px;padding:2px 8px;margin-right:4px;}
 
   /* modal */
@@ -452,6 +475,23 @@ nav button:not(.on):hover{background:var(--orange-soft);}
 .lesson:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
 .lesson.done{box-shadow:0 6px 14px rgba(255,107,26,.3);}
 
+/* 学习 Dashboard：两行课程概览 + 小型环形图 */
+.course-rows{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.course-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--orange-line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow-sm);}
+.course-row .cr-info{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.course-row .cr-name{font-size:15px;font-weight:700;color:var(--text);}
+.course-row .cr-stat{font-size:13px;color:var(--text-soft);}
+.mini-ring{width:64px;height:64px;flex:none;}
+
+/* 考试倒计时模块：天数字体加大 */
+.countdown{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(135deg,#FFF3E9,#FFE2CC);}
+.countdown .cd-label{font-size:14px;color:var(--text-soft);}
+.countdown .cd-num{font-size:64px;font-weight:900;line-height:1.05;color:var(--orange);}
+.countdown .cd-num-row{display:flex;align-items:baseline;gap:6px;}
+.countdown .cd-unit{font-size:14px;color:var(--text-soft);}
+.countdown .cd-date{font-size:13px;color:var(--text-soft);cursor:pointer;border-bottom:1px dashed var(--orange-line);padding-bottom:1px;display:inline-block;}
+.countdown .cd-date:hover{color:var(--orange);}
+
 /* 日历：渐变格 + 悬浮抬升 + 今日光环 */
 .cal-cell{background:linear-gradient(160deg,#FFF3E9,#FFE6D3);box-shadow:0 1px 3px rgba(255,107,26,.08);transition:transform .15s, box-shadow .15s;}
 .cal-cell:hover{transform:translateY(-2px);box-shadow:0 5px 12px rgba(255,107,26,.16);}
@@ -516,20 +556,21 @@ nav button:not(.on):hover{background:var(--orange-soft);}
 .item-stats{display:flex;align-items:center;gap:8px;margin-left:auto;}
 .item-stat{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;line-height:1;flex:none;}
 .item-stat.plus,.item-stat.minus{width:42px;height:42px;font-size:13px;border:1.5px solid;}
-.item-stat.plus{background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7;}
-.item-stat.minus{background:#FFF1EF;color:#C62828;border-color:#f3b6ad;}
+.item-stat.plus{background:#FFF1EF;color:#C62828;border-color:#f3b6ad;}
+.item-stat.minus{background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7;}
 .item-stat.total{width:50px;height:50px;font-size:15px;background:var(--orange);color:#fff;box-shadow:0 4px 12px rgba(255,107,26,.35);}
 .item-stat.total.neg{background:var(--red);box-shadow:0 4px 12px rgba(198,40,40,.3);}
-.item-table-wrap{max-height:300px;overflow-y:auto;margin-top:12px;border:1px solid var(--orange-line);border-radius:12px;background:#fff;}
-.item-table{width:100%;border-collapse:collapse;table-layout:fixed;}
-.item-table th,.item-table td{padding:8px 6px;font-size:13px;border-bottom:1px solid #FFEADF;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.item-table-wrap{max-height:300px;overflow:auto;margin-top:12px;border:1px solid var(--orange-line);border-radius:12px;background:#fff;}
+.item-table{width:100%;min-width:100%;border-collapse:collapse;table-layout:auto;}
+.item-table th,.item-table td{padding:8px 6px;font-size:13px;border-bottom:1px solid #FFEADF;text-align:left;white-space:nowrap;}
 .item-table thead th{background:var(--orange-soft);color:var(--orange-dark);position:sticky;top:0;z-index:1;}
-.item-table .c-name{width:22%;}
-.item-table .c-qty{width:13%;}
-.item-table .c-cat{width:16%;}
-.item-table .c-date{width:22%;}
-.item-table .c-note{width:19%;}
-.item-table .c-act{width:96px;text-align:center;white-space:nowrap;}
+.item-table .c-name{white-space:nowrap;}            /* 名称：按最长名称自适应（nowrap 不截断） */
+.item-table .c-qty{width:1%;white-space:nowrap;}     /* 数量：最窄，仅容纳内容 */
+.item-table .c-cat{width:1%;white-space:nowrap;}     /* 分类：最窄 */
+.item-table .c-date{width:1%;white-space:nowrap;}    /* 日期：最窄 */
+.item-table .c-note{width:220px;white-space:nowrap;} /* 备注：固定列宽，超长在单元格内横向滚动 */
+.item-table .note-sc{width:100%;max-width:100%;overflow-x:auto;white-space:nowrap;}
+.item-table .c-act{width:96px;text-align:center;white-space:nowrap;}  /* 操作：固定宽度，最右 */
 .item-table .c-qty.neg{color:var(--red);font-weight:700;}
 .item-table .empty{text-align:center;color:var(--text-soft);padding:18px;}
 </style>
@@ -613,9 +654,162 @@ function $(sel,el){return (el||document).querySelector(sel);}
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1800);}
 
 /* ============ 初始化默认数据 ============ */
+const ECON_SEED=[
+  {n:"第1章开篇直播（第1章）",m:141},
+  {n:"第2章-市场需求、供给与均衡价格第1-2节",m:84},
+  {n:"第2章-市场需求、供给与均衡价格第3节",m:47},
+  {n:"第2章-市场需求、供给与均衡价格第4节",m:107},
+  {n:"第3章-生产和成本理论第1节",m:33},
+  {n:"第3章-生产和成本理论第2节",m:40},
+  {n:"第3章-生产和成本理论第3节",m:64},
+  {n:"第4章-市场结构理论第1节",m:42},
+  {n:"第4章-市场结构理论第2节",m:41},
+  {n:"第4章-市场结构理论第3节",m:57},
+  {n:"第4章-市场结构理论第4节",m:25},
+  {n:"第5章-生产要素市场理论第1节",m:51},
+  {n:"第5章-生产要素市场理论第2节",m:35},
+  {n:"第5章-生产要素市场理论第3节",m:34},
+  {n:"第6章-市场失灵和政府的干预第1节",m:32},
+  {n:"第6章-市场失灵和政府的干预第2-3节",m:104},
+  {n:"第7章-国民收入核算和简单的宏观经济模型第1-2节",m:65},
+  {n:"第7章-国民收入核算和简单的宏观经济模型第3节",m:52},
+  {n:"第7章-国民收入核算和简单的宏观经济模型第4节",m:38},
+  {n:"第8章-经济增长和经济发展理论第1节",m:28},
+  {n:"第8章-经济增长和经济发展理论第2节",m:37},
+  {n:"第8章-经济增长和经济发展理论第3节",m:35},
+  {n:"第9章-价格总水平和就业、失业第1节",m:46},
+  {n:"第9章-价格总水平和就业、失业第2至4节",m:58},
+  {n:"第10章-国际贸易理论和政策",m:93},
+  {n:"第23章-统计与数据科学第1至3节",m:52},
+  {n:"第23章-统计与数据科学第4节",m:63},
+  {n:"第23章-统计与数据科学第5节",m:50},
+  {n:"第24章-描述统计第1节",m:44},
+  {n:"第24章-描述统计第2节",m:34},
+  {n:"第24章-描述统计第3节",m:50},
+  {n:"第24章-描述统计第4节",m:33},
+  {n:"第25章-抽样调查第1节",m:61},
+  {n:"第25章-抽样调查第2节",m:72},
+  {n:"第25章-抽样调查第3节",m:63},
+  {n:"第26章-回归分析第1节",m:41},
+  {n:"第26章-回归分析第2节",m:16},
+  {n:"第26章-回归分析第3节",m:47},
+  {n:"第27章-时间序列分析第1节",m:23},
+  {n:"第27章-时间序列分析第2节",m:48},
+  {n:"第27章-时间序列分析第3节",m:51},
+  {n:"第27章-时间序列分析第4节及第5节",m:31},
+  {n:"第28章-会计概论第1节",m:92},
+  {n:"第28章-会计概论第2节",m:10},
+  {n:"第28章-会计概论第3节1",m:55},
+  {n:"第28章-会计概论第3节2",m:30},
+  {n:"第28章-会计概论第3节3",m:16},
+  {n:"第28章-会计概论第4节",m:46},
+  {n:"第28章-会计概论第5节至第7节",m:70},
+  {n:"第29章-会计循环第1节及第2节",m:56},
+  {n:"第29章-会计循环第3节1",m:82},
+  {n:"第29章-会计循环第3节2-第4节",m:30},
+  {n:"第30章-会计报表第1节",m:49},
+  {n:"第30章-会计报表第2节",m:49},
+  {n:"第30章-会计报表第3节",m:17},
+  {n:"第30章-会计报表第4节及第5节",m:56},
+  {n:"第31章-财务报表分析第1节及第2节",m:35},
+  {n:"第31章-财务报表分析第3节1",m:51},
+  {n:"第31章-财务报表分析第3节2",m:23},
+  {n:"第31章-财务报表分析第3节3",m:31},
+  {n:"第32章-政府会计",m:75},
+  {n:"第11章-公共物品与财政职能第1节",m:60},
+  {n:"第11章-公共物品与财政职能第2节",m:14},
+  {n:"第11章-公共物品与财政职能第3节",m:41},
+  {n:"第12章-财政支出第1节",m:36},
+  {n:"第12章-财政支出第2节",m:50},
+  {n:"第12章-财政支出第3节",m:49},
+  {n:"第12章-财政支出第4节及第5节",m:33},
+  {n:"第13章-财政收入第1节及第2节",m:65},
+  {n:"第13章-财政收入第3节",m:46},
+  {n:"第13章-财政收入第4节",m:64},
+  {n:"第14章-税收制度第1节",m:56},
+  {n:"第14章-税收制度第2节",m:110},
+  {n:"第14章-税收制度第3节",m:76},
+  {n:"第14章-税收制度第4节",m:17},
+  {n:"第14章-税收制度第5节",m:15},
+  {n:"第15章-政府预算第3节",m:39},
+  {n:"第15章-政府预算第4节",m:25},
+  {n:"第15章-政府预算第5节",m:14}
+];
+/* 工商管理（优路2026 视频课）—— 排除「第十章 电子商务」4 节（用户标注不用学） */
+const BIZ_SEED=[
+  {n:"第01节课入门导学-考试介绍",m:35},
+  {n:"第02节课入门导学-考情分析与备考建议",m:37},
+  {n:"第03节课第一章第一节企业战略概述",m:37},
+  {n:"第04节课第一章第二节战略管理流程",m:45},
+  {n:"第05节课第一章第三节企业外部环境分析",m:32},
+  {n:"第06节课第一章第四节企业内部环境分析及综合分析",m:43},
+  {n:"第07节课第一章第五节企业成长战略",m:47},
+  {n:"第08节课第一章第六节其他战略类型",m:36},
+  {n:"第09节课第二章第七节企业经营决策（上）",m:32},
+  {n:"第10节课第二章第八节企业经营决策（下）",m:34},
+  {n:"第11节课第二章第九节商业模式分析",m:32},
+  {n:"第12节课第二章第一节公司所有者与经营者",m:50},
+  {n:"第13节课第二章第二节股东概述",m:48},
+  {n:"第14节课第二章第三节股东会",m:44},
+  {n:"第15节课第二章第四节董事会（上）",m:36},
+  {n:"第16节课第二章第四节董事会（下）",m:51},
+  {n:"第17节课第二章第六节经理层与监事会",m:48},
+  {n:"第18节课第二章第七节中国特色国家出资公司的治理",m:40},
+  {n:"第19节课第二章第一节营销环境及营销战略规划",m:51},
+  {n:"第20节课第二章第二节目标市场战略",m:47},
+  {n:"第21节课第二章第三节产品策略与促销策略",m:50},
+  {n:"第22节课第二章第四节定价策略",m:52},
+  {n:"第23节课第二章第五节品牌和品牌战略",m:48},
+  {n:"第24节课第四章第一节分销渠道的构建",m:53},
+  {n:"第25节课第四章第二节渠道成员、权力管理",m:51},
+  {n:"第26节课第四章第三节渠道冲突管理",m:23},
+  {n:"第27节课第四章第四节分销渠道系统评估",m:40},
+  {n:"第28节课第四章第五节分销渠道发展趋势",m:31},
+  {n:"第29节课第五章第一节考点：生产能力的概念、种类和影响因素",m:21},
+  {n:"第30节课第五章第一节考点：生产能力核算",m:42},
+  {n:"第31节课第五章第二节生产计划概述",m:39},
+  {n:"第32节课第五章第三节生产作业计划编制",m:56},
+  {n:"第33节课第五章第四节生产控制",m:18},
+  {n:"第34节课第五章第五节生产作业控制",m:44},
+  {n:"第35节课第五章第六节现代生产管理方式",m:48},
+  {n:"第36节课第六章第一节物流与物流管理概述（一）",m:48},
+  {n:"第37节课第六章第一节物流与物流管理概述（二）",m:53},
+  {n:"第38节课第六章第二节仓储管理",m:51},
+  {n:"第39节课第六章第四节库存管理",m:48},
+  {n:"第40节课第六章第五节运输管理",m:37},
+  {n:"第41节课第六章第六节配送管理",m:24},
+  {n:"第42节课第七章第一节技术创新的特点、分类与模式",m:55},
+  {n:"第43节课第七章第二节技术创新战略",m:48},
+  {n:"第44节课第七章第三节技术创新决策的评估",m:34},
+  {n:"第45节课第七章第四节技术价值的评估方法",m:42},
+  {n:"第46节课第七章第五节技术创新组织",m:34},
+  {n:"第47节课第七章第六节企业研发管理",m:25},
+  {n:"第48节课第七章第七节企业管理创新",m:37},
+  {n:"第49节课第八章第一节人力资源规划",m:48},
+  {n:"第50节课第八章第二节绩效考核",m:48},
+  {n:"第51节课第八章第三节绩效考核的方法",m:34},
+  {n:"第52节课第八章第四节薪酬管理概述",m:34},
+  {n:"第53节课第八章第五节基本薪酬设计",m:38},
+  {n:"第54节课第八章第六节激励薪酬与福利的设计",m:25},
+  {n:"第55节课第九章第一节一次性收付款项的计算",m:34},
+  {n:"第56节课第九章第二节年金终值与现值",m:51},
+  {n:"第57节课第九章第三节风险价值观念",m:25},
+  {n:"第58节课第九章第四节资本成本率的测算",m:42},
+  {n:"第59节课第九章第五节杠杆理论、资本结构理论及决策",m:37},
+  {n:"第60节课第九章第六节投资现金流量估算",m:23},
+  {n:"第61节课第九章第七节财务指标、项目风险和长期股权投资",m:39},
+  {n:"第62节课第九章第八节并购重组（上）",m:30},
+  {n:"第63节课第九章第八节并购重组（下）",m:38},
+  {n:"第68节课第十一章第一节国际商务与跨国公司（上）",m:34},
+  {n:"第69节课第十一章第一节国际商务与跨国公司（下）",m:38},
+  {n:"第70节课第十一章第三节国际直接投资业务（上）",m:22},
+  {n:"第71节课第十一章第四节国际直接投资业务（下）",m:34},
+  {n:"第72节课第十一章第五节交易磋商及国际贸易术语",m:28},
+  {n:"第73节课第十一章第六节考点：商品出口的主要业务环节",m:44},
+  {n:"第74节课第十一章第六节考点：商品进口的主要业务环节",m:20},
+];
 function defaultState(){
-  const biz=[];let idx=0;
-  BIZ_CHAPTERS.forEach((ch,ci)=>{for(let i=0;i<ch.count;i++){idx++;biz.push({id:uid(),ch:ci,n:idx,date:null});}});
+  const biz=BIZ_SEED.map((x,i)=>({id:uid(),name:x.n,mins:x.m,n:i+1,date:null}));
   // 第1-2课预设完成 2026-07-30
   if(biz[0])biz[0].date='2026-07-30';
   if(biz[1])biz[1].date='2026-07-30';
@@ -643,7 +837,7 @@ function defaultState(){
     study:{
       examDate:'2026-11-15',
       biz:biz,
-      economy:[], // 经济基础 待导入
+      economy:ECON_SEED.map(x=>({id:uid(),name:x.n,mins:x.m,date:null})), // 经济基础（优路2026 视频课）
       plans:[], // 学习计划 {id,text,done,homeId}
     },
     life:{
@@ -681,6 +875,8 @@ function migrate(){
   if(!S.pet)S.pet=d.pet;
   if(!Array.isArray(S.quotes))S.quotes=d.quotes.slice();
   if(!S.study.biz||!S.study.biz.length)S.study.biz=d.study.biz;
+  else if(!S.study.biz[0]||S.study.biz[0].mins===undefined)S.study.biz=d.study.biz; // 旧版章计数占位（无 mins）→ 用真实逐课种子替换
+  if(!Array.isArray(S.study.economy)||!S.study.economy.length)S.study.economy=ECON_SEED.map(x=>({id:uid(),name:x.n,mins:x.m,date:null}));
   // TDL <-> 今日待办 关联字段补齐
   if(S.work&&S.work.tdl)S.work.tdl.forEach(t=>{ if(!('homeId' in t))t.homeId=null; });
   if(S.todos)S.todos.forEach(x=>{ if(!('wid' in x))x.wid=null; });
@@ -1241,11 +1437,10 @@ function wonRow(d){
 /* ---------- 学习模块 ---------- */
 function viewStudy(){
   const st=S.study;
-  const total=st.biz.length;
-  const done=st.biz.filter(l=>l.date).length;
-  const pct=Math.round(done/total*100);
-  // 剩余时长（估算：未完成任务，每课默认 25 分钟，可按实际调整）
-  const remain=(total-done)*25;
+  const eTotal=st.economy.length, eDone=st.economy.filter(l=>l.date).length, ePct=eTotal?Math.round(eDone/eTotal*100):0;
+  const eRemainH=(st.economy.filter(l=>!l.date).reduce((a,l)=>a+(l.mins||0),0)/60).toFixed(1);
+  const bTotal=st.biz.length, bDone=st.biz.filter(l=>l.date).length, bPct=bTotal?Math.round(bDone/bTotal*100):0;
+  const bRemainH=(st.biz.filter(l=>!l.date).reduce((a,l)=>a+(l.mins||0),0)/60).toFixed(1);
   const examd=new Date(st.examDate+'T00:00:00');
   const days=Math.max(0,Math.round((examd-new Date())/86400000));
   const tabs=`
@@ -1266,13 +1461,23 @@ function viewStudy(){
       ${t.homeId?`<span class="badge">今天就干💪</span><button class="btn xs ghost" data-punlink="${t.id}">再放放</button>`:`<button class="btn xs ghost today-btn" data-plink="${t.id}">+Today</button>`}
       <div class="del" data-pdel="${t.id}">✕</div></div>`).join('');
     body=`
-    <div class="study-stats">
-      <div class="stat"><div class="v">${days}</div><div class="l">⏳ 距考试天数<br>${st.examDate}</div></div>
-      <div class="stat"><div class="v">${done}/${total}</div><div class="l">📊 课程完成<br>${pct}%</div></div>
-      <div class="stat"><div class="v">${remain}</div><div class="l">⏱️ 剩余分钟<br>(约 ${(remain/60).toFixed(1)}h)</div></div>
+    <div class="course-rows">
+      <div class="course-row">
+        <div class="cr-info">
+          <span class="cr-name">📖 经济基础</span>
+          <span class="cr-stat">完成 ${eDone}/${eTotal} · 剩余 ${eRemainH} 小时</span>
+        </div>
+        ${miniRing(ePct)}
+      </div>
+      <div class="course-row">
+        <div class="cr-info">
+          <span class="cr-name">🏭 工商管理</span>
+          <span class="cr-stat">完成 ${bDone}/${bTotal} · 剩余 ${bRemainH} 小时</span>
+        </div>
+        ${miniRing(bPct)}
+      </div>
     </div>
     <div class="home-top">
-      ${ringProgress(pct,'课程完成进度')}
       <div class="card">
         <h3><span class="emo">📋</span>学习计划</h3>
         <div class="todo-add">
@@ -1283,15 +1488,29 @@ function viewStudy(){
         <div id="planList">${planListHtml||'<div class="empty">还没有学习计划</div>'}</div>
         <p class="sub mt">提示：点「+Today」把这条学习计划一键推到仪表盘今日待办（仅加入清单，不自动完成）；关联后显示「今天就干💪」，可点「再放放」移出。勾选完成两边双向同步状态。</p>
       </div>
-    </div>
-    <div class="card mt">
-      <h3><span class="emo">🏭</span>工商管理进度速览</h3>
-      <p class="sub">共 ${total} 课 / 11 章，主讲：高宽宽（2026 版 优路 74 课精讲）</p>
-      <button class="btn" style="width:100%" onclick="SUB='biz';render()">查看课程表 →</button>
+      <div class="card countdown">
+        <div class="cd-label">⏳ 距考试还有</div>
+        <div class="cd-num-row"><span class="cd-num">${days}</span><span class="cd-unit">天</span></div>
+        <div class="cd-date" onclick="editExamDate()" title="点击修改考试日期">📅 ${st.examDate}</div>
+      </div>
     </div>`;
   }
   return `<div class="topbar"><h2>📚 中级经济师备考</h2></div>${tabs}${body}`;
 }
+function editExamDate(){
+  showModal('修改考试日期',`
+    <div class="field"><label>考试日期</label><input id="exam_date" type="date" value="${esc(S.study.examDate||'')}"></div>
+    <button class="btn" style="width:100%" onclick="saveExamDate()">保存</button>
+  `);
+}
+function saveExamDate(){
+  const el=document.getElementById('exam_date');
+  const v=el?el.value.trim():'';
+  if(!v){toast('请选择考试日期');return;}
+  S.study.examDate=v; persist(); closeModal(); render();
+  toast('考试日期已更新，倒计时已刷新 🎉');
+}
+
 function ringProgress(pct,label){
   const r=52,circ=2*Math.PI*r,off=circ*(1-pct/100);
   return `<div class="card center">
@@ -1304,47 +1523,71 @@ function ringProgress(pct,label){
     </svg>
   </div>`;
 }
+function miniRing(pct){
+  const r=26,circ=2*Math.PI*r,off=circ*(1-pct/100);
+  return `<svg class="mini-ring" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="#FFE0CC" stroke-width="8"/>
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="${ORANGE}" stroke-width="8" stroke-linecap="round"
+      stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 32 32)"/>
+    <text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="${ORANGE}">${pct}%</text>
+  </svg>`;
+}
 function viewEconomy(){
-  const rows=S.study.economy.map((l,i)=>`<div class="lesson ${l.date?'done':''}" data-elid="${l.id}">
-    ${i+1}${l.date?`<span class="d">${l.date.slice(5)}</span>`:''}</div>`).join('');
+  const rows=S.study.economy.map((l,i)=>`<div class="econ-row ${l.date?'done':''}" data-elid="${l.id}">
+    <span class="eidx">${i+1}</span>
+    <span class="ename">${esc(l.name)}</span>
+    ${l.mins?`<span class="emins">${l.mins}′</span>`:''}
+    ${l.date?`<span class="d">${l.date.slice(5)}</span>`:''}</div>`).join('');
   return `
   <div class="card">
-    <h3><span class="emo">📖</span>经济基础（待导入）</h3>
+    <h3><span class="emo">📖</span>经济基础</h3>
     <div class="todo-add">
       <input id="ecoInput" placeholder="添加一节课程名称…" onkeydown="if(event.key==='Enter')addEco()">
       <button class="btn" onclick="addEco()">加课</button>
     </div>
-    <p class="sub">点击课程标记完成（当天日期），+10 🪙（同日多课额外 +6）</p>
-    <div class="lessons">${rows||'<div class="empty">尚未导入课程，可手动添加</div>'}</div>
+    <p class="sub">点击课程标记完成（当天日期），+10 🪙（同日多课额外 +6）。共 ${S.study.economy.length} 节。</p>
+    <div class="econ-list">${rows||'<div class="empty">尚未导入课程，可手动添加</div>'}</div>
   </div>`;
 }
 function addEco(){
   const i=$('#ecoInput');const v=i.value.trim();if(!v)return;
   S.study.economy.push({id:uid(),name:v,date:null});i.value='';save();render();
 }
+function addBiz(){
+  const i=$('#bizInput');const v=i.value.trim();if(!v)return;
+  const nextN=S.study.biz.reduce((a,l)=>Math.max(a,l.n||0),0)+1;
+  S.study.biz.push({id:uid(),n:nextN,ch:undefined,name:v,date:null});i.value='';save();render();
+}
 function viewBiz(){
   const st=S.study;
-  const chapters=BIZ_CHAPTERS.map((ch,ci)=>{
-    const ls=st.biz.filter(l=>l.ch===ci);
-    const done=ls.filter(l=>l.date).length;
-    const items=ls.map(l=>`<div class="lesson ${l.date?'done':''}" data-lid="${l.id}" title="${l.date||''}">
-      ${l.n}${l.date?`<span class="d">${l.date.slice(5)}</span>`:''}</div>`).join('');
-    return `<div class="chapter"><div class="ch-head" onclick="toggleChapter(this)">
-      <span>第${ci+1}章 · ${esc(ch.name)}</span>
-      <span class="pg">${done}/${ch.count} ▾</span></div>
-      <div class="lessons">${items}</div></div>`;
+  const rows=st.biz.map(l=>{
+    const name=l.name?l.name:`第${(l.ch||0)+1}章 ${(BIZ_CHAPTERS[l.ch]?BIZ_CHAPTERS[l.ch].name:'')}`;
+    return `<div class="econ-row ${l.date?'done':''}" data-lid="${l.id}" title="${esc(name)}">
+      <span class="eidx">${l.n}</span>
+      <span class="ename">${esc(name)}</span>
+      ${l.mins?`<span class="emins">${l.mins}′</span>`:''}
+      ${l.date?`<span class="d">${l.date.slice(5)}</span>`:''}</div>`;
   }).join('');
-  return `<div class="card"><p class="sub">点击课程标记完成（默认今天），再点可改日期。完成 +10 🪙，同日第 N(N≥2) 课额外 +6 🪙。</p>${chapters}</div>`;
+  return `
+  <div class="card">
+    <h3><span class="emo">🏭</span>工商管理</h3>
+    <div class="todo-add">
+      <input id="bizInput" placeholder="添加一节课程名称…" onkeydown="if(event.key==='Enter')addBiz()">
+      <button class="btn" onclick="addBiz()">加课</button>
+    </div>
+    <p class="sub">点击课程标记完成（当天日期），+10 🪙（同日多课额外 +6）。共 ${st.biz.length} 节。</p>
+    <div class="econ-list">${rows||'<div class="empty">尚未导入课程，可手动添加</div>'}</div>
+  </div>`;
 }
 function bindStudy(){
   document.querySelectorAll('#app .tabs button').forEach(b=>{
     b.onclick=()=>{SUB=b.dataset.st;render();};
   });
   // 工商管理课程
-  document.querySelectorAll('.lesson[data-lid]').forEach(el=>{
+  document.querySelectorAll('.econ-row[data-lid]').forEach(el=>{
     el.onclick=()=>markLesson(el.dataset.lid);
   });
-  document.querySelectorAll('.lesson[data-elid]').forEach(el=>{
+  document.querySelectorAll('.econ-row[data-elid]').forEach(el=>{
     el.onclick=()=>markEco(el.dataset.elid);
   });
   // 学习计划
@@ -1474,7 +1717,7 @@ function viewItems(){
       <td class="c-qty ${r.qty<0?'neg':''}">${r.qty>0?'+':''}${r.qty}</td>
       <td class="c-cat">${esc(r.category)}</td>
       <td class="c-date">${esc(r.date)}</td>
-      <td class="c-note" title="${esc(r.note||'')}">${esc(r.note||'')}</td>
+      <td class="c-note" title="${esc(r.note||'')}"><div class="note-sc">${esc(r.note||'')}</div></td>
       <td class="c-act"><button class="btn xs ghost" data-iedit="${r.id}">改</button><button class="btn xs ghost" data-idel="${r.id}">删</button></td>
     </tr>`).join('');
   const catBtns=['全部',...cats].map(c=>`<button class="btn xs ${LIFE_ITEM_CAT===c?'':'ghost'}" data-icat="${c}">${c}</button>`).join('');
@@ -1845,32 +2088,31 @@ function viewHobby(){
     const ti=p.type==='read'?'📖':def.ic;
     // 标签/样式：有开工记录（历史计时 / 正在计时 / 已标记进行中）即视为“进行中”；按钮严格由 startedAt 决定（真正在计时才显示结束计时）
     const ongoing=p.status==='ing'||p.startedAt||(p.sessions&&p.sessions.length>0);
-    const stTxt=p.status==='done'?'已完成':(ongoing?'进行中':'待开始');
     const stCls=p.status==='done'?'done':(ongoing?'ing':'Pending');
+    const stLabel=p.status==='done'?'已完成':(ongoing?'进行中':'待开始');
     const thumb=p.image?`<img class="thumb" src="${esc(p.image)}" onerror="this.textContent='${ti}'">`:`<div class="thumb">${ti}</div>`;
     const dur=Math.round((p.sessions||[]).reduce((a,s)=>a+s.min,0));
     const actions=[];
     if(p.status==='done'){
-      actions.push(`<button class="btn small" style="background:#4A90D9" onclick="reopenProj('${p.id}')">🔄 重开</button>`);
+      actions.push(`<button class="btn small" style="background:#4A90D9" onclick="reopenProj('${p.id}')" title="重开">🔄 重开</button>`);
     }else{
-      if(p.startedAt)actions.push(`<button class="btn small" style="background:#4A90D9" onclick="stopProj('${p.id}')">⏹ 结束计时</button>`);
-      else actions.push(`<button class="btn small" onclick="startProj('${p.id}')">▶ 开始计时</button>`);
-      actions.push(`<button class="btn small ghost" onclick="doneProj('${p.id}')">✓ 标记完成</button>`);
+      if(p.startedAt)actions.push(`<button class="btn small" style="background:#4A90D9" onclick="stopProj('${p.id}')" title="结束计时">⏹</button>`);
+      else actions.push(`<button class="btn small" onclick="startProj('${p.id}')" title="开始计时">▶</button>`);
+      actions.push(`<button class="btn small ghost" onclick="doneProj('${p.id}')" title="标记完成">✓</button>`);
     }
-    actions.push(`<button class="btn small danger" onclick="delProj('${p.id}')">删除</button>`);
-    return `<div class="proj ${stCls}">
-      <div class="p-top">${thumb}
-        <div class="p-info"><div class="p-name">${esc(p.name)}</div>
-          <div class="p-meta">
-            ${p.price!=null&&p.price!==''?`<span class="badge">🪙${esc(p.price)}</span>`:''}
-            ${p.channel?`<span class="badge">${esc(p.channel)}</span>`:''}
-            <span class="badge">⏱${dur}分</span>
-            <span class="badge">📅${p.doneDays||0}天</span>
-          </div></div>
-        <div class="p-status">${stTxt}</div>
+    actions.push(`<button class="btn small danger" onclick="delProj('${p.id}')" title="删除">✕</button>`);
+    actions.push(`<button class="btn small ghost" onclick="editProj('${p.id}')" title="编辑">✎</button>`);
+    return `<div class="proj ${stCls}" data-pid="${p.id}">
+      <div class="p-tab">${stLabel}</div>
+      <div class="p-body">
+        <div class="p-top">${thumb}
+          <div class="p-info">
+            <div class="p-name-row"><span class="p-name">${esc(p.name)}</span></div>
+            <div class="p-meta">⏱ ${dur}分 · 📅 ${p.doneDays||0}天</div>
+          </div>
+        </div>
+        <div class="p-actions">${actions.join('')}</div>
       </div>
-      <div class="p-actions">${actions.join('')}
-        <button class="btn small ghost" onclick="editProj('${p.id}')">✎ 编辑</button></div>
     </div>`;
   }).join('');
   return `
