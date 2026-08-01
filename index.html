@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="工作台">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<link rel="icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>林夕个人管理工作台 · 奶茶陪你 🐰</title>
 <style>
   :root{
@@ -1030,16 +1038,24 @@ function bindNav(){
 /* ============ 主渲染 ============ */
 function render(){
   if(VIEW==='home')computeDecay(); // 衰减仅在进入仪表盘时按真实时间差计算并更新数值条
-  save();renderHeader();
+  try{save();}catch(e){}
+  renderHeader();
   const a=$('#app');
-  if(VIEW==='home')a.innerHTML=viewHome();
-  else if(VIEW==='work')a.innerHTML=viewWork();
-  else if(VIEW==='study')a.innerHTML=viewStudy();
-  else if(VIEW==='life')a.innerHTML=viewLife();
-  else if(VIEW==='beauty')a.innerHTML=viewBeauty();
-  else if(VIEW==='hobby')a.innerHTML=viewHobby();
-  else if(VIEW==='settings')a.innerHTML=viewSettings();
-  bindView();
+  let html='';
+  try{
+    if(VIEW==='home')html=viewHome();
+    else if(VIEW==='work')html=viewWork();
+    else if(VIEW==='study')html=viewStudy();
+    else if(VIEW==='life')html=viewLife();
+    else if(VIEW==='beauty')html=viewBeauty();
+    else if(VIEW==='hobby')html=viewHobby();
+    else if(VIEW==='settings')html=viewSettings();
+  }catch(e){
+    html=`<div class="card"><h3>⚠️ 该页面渲染出错</h3><p class="sub">${esc(e&&e.message||String(e))}</p>
+      <button class="btn mt" style="width:100%" onclick="render()">重试</button></div>`;
+  }
+  a.innerHTML=html;
+  try{bindView();}catch(e){toast('页面交互绑定出错：'+(e&&e.message||e));}
 }
 
 /* ---------- 仪表盘 ---------- */
@@ -1990,7 +2006,7 @@ function viewBeauty(){
     </div>
     ${b.meas.length===0
       ? `<div class="empty-hint">暂无数据，请添加围度记录</div>`
-      : `<canvas id="measChart" width="640" height="320" style="width:100%;display:block"></canvas>
+      : `<canvas id="measChart" width="640" height="320" style="width:100%;height:auto;display:block"></canvas>
          ${measTable}`}
   </div>`;
 }
@@ -2037,7 +2053,8 @@ function commitMeas(){
   save();closeModal();render();toast('已记录围度');
 }
 function bindBeauty(){
-  if($('#measChart'))drawMeasChart();
+  const cv=$('#measChart');
+  if(cv){requestAnimationFrame(()=>{try{drawMeasChart();}catch(e){console.error('chart draw failed',e);}});}
   document.querySelectorAll('[data-set]').forEach(el=>el.onclick=()=>setWeight(el.dataset.set));
   const addBtn=document.querySelector('[data-addmeas]');
   if(addBtn)addBtn.onclick=openAddMeas;
