@@ -1946,8 +1946,9 @@ function importData(){
   const inp=document.createElement('input');inp.type='file';inp.accept='application/json';
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const rd=new FileReader();
     rd.onload=()=>{try{const d=JSON.parse(rd.result);
-      // 合并模式：不覆盖已有字段（以现有为主，缺的补）
-      S=Object.assign({},d,S);save();render();toast('导入成功（合并）');
+      // 以导入文件为准（覆盖当前），并补齐可能缺失的字段，再写回
+      S=Object.assign({},d);migrate();syncCheckins();save();render();
+      toast('✅ 导入成功，数据已同步');
     }catch(e){toast('JSON 解析失败');}};rd.readAsText(f);};
   inp.click();
 }
