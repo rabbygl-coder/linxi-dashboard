@@ -1,0 +1,17 @@
+{
+  "name": "工作台",
+  "short_name": "工作台",
+  "description": "林夕个人管理工作台",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FF6B1A",
+  "theme_color": "#FF6B1A",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
