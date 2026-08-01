@@ -282,10 +282,10 @@
   .proj .thumb{width:54px;height:54px;border-radius:10px;background:var(--orange-soft);object-fit:cover;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--orange);}
   /* 右侧两行：缩略图与文字块上下齐平 */
-  .proj .p-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;height:54px;}
+  .proj .p-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;min-height:54px;height:auto;}
   .proj .p-name-row{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0;}
   .proj .p-name{flex:1;min-width:0;font-weight:700;font-size:16px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .proj .p-meta{font-size:12px;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .proj .p-meta{font-size:12px;color:var(--text-soft);white-space:normal;overflow:visible;line-height:1.35;word-break:keep-all;}
   .proj .p-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:nowrap;}
   /* 4 个按钮均分一行、可收缩，永不换行（手机/iPhone 也能整行显示） */
   .proj .p-actions .btn{flex:1 1 0;min-width:0;padding-left:6px;padding-right:6px;justify-content:center;}
@@ -299,11 +299,16 @@
   @media (max-width:560px){
     #projList{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
     .proj .thumb{width:44px;height:44px;font-size:20px;border-radius:9px;}
-    .proj .p-info{height:44px;}
+    .proj .p-info{min-height:44px;height:auto;}
+    .proj .p-meta{font-size:11px;}
     .proj .p-name{font-size:15px;}
     .proj .p-actions .btn{margin:0;}
   }
   .badge{font-size:11px;background:var(--orange-soft);color:var(--orange-dark);border-radius:8px;padding:2px 8px;margin-right:4px;}
+  /* 爱好项目图片上传：本地文件选择 + 预览 */
+  #p_file{font-size:13px;color:var(--text-soft);margin-top:4px;}
+  .img-prev{margin:6px 0 2px;}
+  .img-prev img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--orange-line);display:block;}
 
   /* modal */
   .modal-mask{position:fixed;inset:0;background:rgba(58,42,32,.5);z-index:50;display:flex;align-items:center;
@@ -2134,7 +2139,7 @@ function viewHobby(){
         <div class="p-top">${thumb}
           <div class="p-info">
             <div class="p-name-row"><span class="p-name">${esc(p.name)}</span></div>
-            <div class="p-meta">⏱ ${dur}分 · 📅 ${p.doneDays||0}天</div>
+            <div class="p-meta"><span>⏱ ${dur}分</span> · <span>📅 ${p.doneDays||0}天</span></div>
           </div>
         </div>
         <div class="p-actions">${actions.join('')}</div>
@@ -2153,10 +2158,16 @@ function bindHobby(){
   });
 }
 function addProj(type){
+  _pendingImg=null;
   const isRead=type==='read';
   showModal(`➕ 添加${HOBBY_TYPES.find(t=>t.k===type).n}项目`,`
     <div class="field"><label>项目名称</label><input id="p_name" placeholder="如：1000片小镇拼图"></div>
-    <div class="field"><label>图片 URL（可粘贴，可留空）</label><input id="p_img" placeholder="https://…"></div>
+    <div class="field"><label>项目图片（上传本地图片，或粘贴 URL）</label>
+      <input type="file" id="p_file" accept="image/*" onchange="previewProjImg(this)">
+      <div id="p_img_preview" class="img-prev"></div>
+      <input id="p_img" placeholder="或粘贴图片 URL（可留空）">
+      <button type="button" class="btn xs ghost" onclick="clearProjImg()">清除图片</button>
+    </div>
     ${isRead?`<div class="field"><label>实体类型</label><select id="p_entity">
         <option value="电子书">电子书</option><option value="纸质书">纸质书</option></select></div>`:''}
     <div class="row">
@@ -2170,7 +2181,7 @@ function addProj(type){
 }
 function editProj(id){
   const p=S.hobby.projects.find(x=>x.id===id);if(!p)return;
-  _editingSessionIdx=-1;
+  _editingSessionIdx=-1;_pendingImg=p.image||null;
   const isRead=p.type==='read';
   const liveElapsed=p.startedAt?Math.round(((Date.now()-p.startedAt)/60000)*10)/10:0;
   const lastS=(p.sessions&&p.sessions.length)?p.sessions[p.sessions.length-1]:null;
@@ -2201,7 +2212,12 @@ function editProj(id){
     </div>`).join(''):'';
   showModal('✎ 编辑项目',`
     <div class="field"><label>项目名称</label><input id="p_name" value="${esc(p.name)}"></div>
-    <div class="field"><label>图片 URL</label><input id="p_img" value="${esc(p.image||'')}"></div>
+    <div class="field"><label>项目图片（上传本地图片，或粘贴 URL）</label>
+      <input type="file" id="p_file" accept="image/*" onchange="previewProjImg(this)">
+      <div id="p_img_preview" class="img-prev">${p.image?`<img src="${esc(p.image)}">`:''}</div>
+      <input id="p_img" placeholder="或粘贴图片 URL（可留空）" value="${esc(p.image&&p.image.startsWith('data:')?'':p.image||'')}">
+      <button type="button" class="btn xs ghost" onclick="clearProjImg()">清除图片</button>
+    </div>
     ${isRead?`<div class="field"><label>实体类型</label><select id="p_entity">
         <option ${p.entity==='电子书'?'selected':''}>电子书</option><option ${p.entity==='纸质书'?'selected':''}>纸质书</option></select></div>`:''}
     <div class="row">
@@ -2223,7 +2239,7 @@ function editProj(id){
 }
 function saveProj(id,type){
   const name=$('#p_name').value.trim();if(!name){toast('请填项目名称');return;}
-  const img=$('#p_img').value.trim();
+  const img=_pendingImg||$('#p_img').value.trim();
   const price=$('#p_price').value;
   const channel=$('#p_channel').value;
   const entity=type==='read'?$('#p_entity').value:null;
@@ -2236,7 +2252,43 @@ function saveProj(id,type){
       price:price!==''?price:'',channel,entity,reason,
       status:'Pending',sessions:[],startDate:null,endDate:null,doneDays:0});
   }
-  syncCheckins();save();closeModal();render();toast('已保存');
+  syncCheckins();save();closeModal();render();toast('已保存');_pendingImg=null;
+}
+// 读取本地图片文件 → 压缩为 dataURL（最长边 360px，JPEG 0.82）后回调；失败则回退原文件
+function readProjImage(file,cb){
+  if(!file){cb(null);return;}
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      let w=im.width,h=im.height;const max=360;
+      if(w>max||h>max){const s=max/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+      try{
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(im,0,0,w,h);
+        cb(c.toDataURL('image/jpeg',0.82));
+      }catch(e){cb(r.result);}
+    };
+    im.onerror=()=>cb(r.result);
+    im.src=r.result;
+  };
+  r.onerror=()=>cb(null);
+  r.readAsDataURL(file);
+}
+function previewProjImg(input){
+  const file=input.files&&input.files[0];
+  const prev=document.getElementById('p_img_preview');
+  readProjImage(file,(data)=>{
+    _pendingImg=data;
+    if(prev)prev.innerHTML=data?`<img src="${data}">`:'';
+    if(data){const u=document.getElementById('p_img');if(u)u.value='';}
+  });
+}
+function clearProjImg(){
+  _pendingImg=null;
+  const prev=document.getElementById('p_img_preview');if(prev)prev.innerHTML='';
+  const f=document.getElementById('p_file');if(f)f.value='';
+  const u=document.getElementById('p_img');if(u)u.value='';
 }
 function addSession(id){
   const p=S.hobby.projects.find(x=>x.id===id);if(!p)return;
@@ -2341,6 +2393,7 @@ function delProj(id){
 // 爱好类型 → 日常打卡自动项 key
 const HOBBY_TO_CHECKIN={puzzle:'puzzle',draw:'draw',model:'model',read:'reading'};
 let _editingSessionIdx=-1;
+let _pendingImg=null;
 // 以爱好数据为准，重建所有“爱好联动”自动打卡项：
 //  · 项目在某天有计时（已完成 session 或正在计时）= 该天对应类型打卡 done，备注=项目名
 //  · 项目/某天计时被删除 → 该天对应打卡项移除（当天无其他同类型项目贡献时）
