@@ -1943,6 +1943,7 @@ function exportData(){
   toast('已导出');
 }
 function importData(){
+  if(!confirm('导入会覆盖当前数据，先导出数据备份喔！\n\n确定要继续导入吗？')) return;
   const inp=document.createElement('input');inp.type='file';inp.accept='application/json';
   inp.onchange=()=>{const f=inp.files[0];if(!f)return;const rd=new FileReader();
     rd.onload=()=>{try{const d=JSON.parse(rd.result);
