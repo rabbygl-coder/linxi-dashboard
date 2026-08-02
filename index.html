@@ -309,6 +309,10 @@
   #p_file{font-size:13px;color:var(--text-soft);margin-top:4px;}
   .img-prev{margin:6px 0 2px;}
   .img-prev img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--orange-line);display:block;}
+  /* 云端同步开关 */
+  .switch-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);cursor:pointer;margin:4px 0 2px;}
+  .switch-row input{width:18px;height:18px;accent-color:var(--orange);}
+  #syncStatus{margin:6px 0 0;}
 
   /* modal */
   .modal-mask{position:fixed;inset:0;background:rgba(58,42,32,.5);z-index:50;display:flex;align-items:center;
@@ -877,6 +881,8 @@ function defaultState(){
     hobby:{
       projects:[], // {id,type,name,image,price,channel,status,sessions:[{date,min}],startDate,endDate,doneDays}
     },
+    _ts:0,                                   // 最近一次本地变更时间戳（云端同步冲突判定用）
+    sync:{enabled:false,url:'',key:''},      // 云端同步配置
   };
 }
 
@@ -925,12 +931,99 @@ function migrate(){
   if(S.study.plans)S.study.plans.forEach(p=>{ if(!('homeId' in p))p.homeId=null; });
   // 今日待办来源标识（src: work/study/null）
   if(S.todos)S.todos.forEach(x=>{ if(!('wid' in x))x.wid=null; if(!('src' in x))x.src = x.fromWork? 'work': null; });
+  // 云端同步字段补齐
+  if(!S.sync||typeof S.sync!=='object')S.sync={enabled:false,url:'',key:''};
+  if(S._ts==null)S._ts=0;
 }
-/* 持久化：浏览器本地存储（GitHub Pages 为纯静态站点，数据保存于本机浏览器；跨设备同步请用设置页的「导出/导入 JSON」） */
+/* 持久化：浏览器本地存储（GitHub Pages 为纯静态站点，数据保存于本机浏览器；
+   开启「云端同步」后，每次 save 会防抖地把最新状态推到自己的云端服务器） */
 function persist(){
   try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('保存失败');}
 }
-function save(){persist();}
+function save(){persist();schedulePush();}
+let _pushTimer=null;
+function schedulePush(){
+  if(!S||!S.sync||!S.sync.enabled)return;
+  if(_pushTimer)clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(()=>{_pushTimer=null;pushSync();},800);
+}
+
+/* ============ 云端同步 ============ */
+let _syncStatus={last:null,err:null}; // 仅内存，不写入 S
+function syncBaseUrl(){return (S.sync&&S.sync.url||'').trim().replace(/\/+$/,'');}
+function syncStatusText(){
+  if(_syncStatus.err)return '⚠️ '+_syncStatus.err;
+  if(_syncStatus.last)return '✅ 最后同步：'+new Date(_syncStatus.last).toLocaleString();
+  return '未同步';
+}
+async function apiState(method, body){
+  const u=syncBaseUrl(), key=(S.sync&&S.sync.key||'').trim();
+  if(!u) throw new Error('未配置服务器地址');
+  if(!key) throw new Error('未配置同步密钥');
+  const url=u+(method==='GET'?('?key='+encodeURIComponent(key)):'');
+  const opt={method, headers:{'Content-Type':'application/json'}};
+  if(body)opt.body=JSON.stringify(body);
+  const r=await fetch(url,opt);
+  if(method==='GET'){
+    if(r.status===204) return null;
+    if(!r.ok) throw new Error('拉取失败 '+r.status);
+    return await r.json();
+  }
+  if(r.status===409){ const j=await r.json().catch(()=>({})); const e=new Error('conflict'); e.conflict=true; e.ts=j.ts; throw e; }
+  if(!r.ok) throw new Error('推送失败 '+r.status);
+  return await r.json().catch(()=>({}));
+}
+async function pushSync(){
+  if(!S.sync||!S.sync.enabled)return;
+  try{
+    S._ts=Date.now(); persist();              // 先落本地（含最新 _ts）
+    await apiState('POST',{key:S.sync.key,ts:S._ts,data:S});
+    _syncStatus={last:Date.now(),err:null}; updateSyncStatus();
+  }catch(e){
+    if(e.conflict){ try{ await pullSync(true); }catch(_){} } // 云端更新，拉下来
+    _syncStatus.err=e.message||String(e); updateSyncStatus();
+  }
+}
+async function pullSync(silent){
+  if(!S.sync||!S.sync.enabled)return false;
+  const remote=await apiState('GET');
+  if(!remote){ await pushSync(); return true; }   // 云端空，把本地推上去
+  if((remote.ts||0) > (S._ts||0)){
+    const ls=S.sync;                              // 保留本端服务器配置
+    S=Object.assign({},remote.data);
+    S.sync=ls; S._ts=remote.ts;
+    migrate(); syncCheckins(); persist();
+    if(!silent)toast('☁️ 已从云端同步');
+    _syncStatus={last:Date.now(),err:null}; updateSyncStatus();
+    return true;
+  }
+  return false;
+}
+async function loadSync(){                        // 启动拉取
+  if(!S.sync||!S.sync.enabled)return;
+  try{ if(await pullSync(true)) render(); }
+  catch(e){ _syncStatus.err=e.message||String(e); updateSyncStatus(); }
+}
+function updateSyncStatus(){
+  const el=document.getElementById('syncStatus'); if(!el)return;
+  if(_syncStatus.err){ el.textContent='⚠️ '+_syncStatus.err; el.style.color='#E8553E'; }
+  else if(_syncStatus.last){ el.textContent='✅ 最后同步：'+new Date(_syncStatus.last).toLocaleString(); el.style.color=''; }
+  else { el.textContent='未同步'; el.style.color=''; }
+}
+function saveSyncSettings(){
+  if(!S.sync)S.sync={};
+  S.sync.enabled=!!($('#syncOn')&&$('#syncOn').checked);
+  S.sync.url=($('#syncUrl')&&$('#syncUrl').value||'').trim();
+  S.sync.key=($('#syncKey')&&$('#syncKey').value||'').trim();
+  save();
+  if(S.sync.enabled){ toast('已保存，正在同步…'); pushSync(); } else toast('已保存');
+  render();
+}
+async function manualSync(){
+  if(!S.sync||!S.sync.enabled){toast('请先开启并填写云端同步');return;}
+  try{ await pullSync(false); await pushSync(); toast('🔄 已同步'); }
+  catch(e){ toast('同步失败：'+(e.message||e)); }
+}
 
 
 /* ============ 金币 ============ */
@@ -1537,7 +1630,7 @@ function saveExamDate(){
   const el=document.getElementById('exam_date');
   const v=el?el.value.trim():'';
   if(!v){toast('请选择考试日期');return;}
-  S.study.examDate=v; persist(); closeModal(); render();
+  S.study.examDate=v; save(); closeModal(); render();
   toast('考试日期已更新，倒计时已刷新 🎉');
 }
 
@@ -2448,9 +2541,22 @@ function viewSettings(){
     <button class="btn danger mt" style="width:100%" onclick="clearData()">🗑️ 清除所有数据（需二次确认）</button>
   </div>
   <div class="card">
+    <h3><span class="emo">☁️</span>云端同步</h3>
+    <p class="sub">开启后，数据实时同步到你自己的云端服务器——手机/电脑/平板登录同一地址，自动共享同一份数据。</p>
+    <label class="switch-row"><input type="checkbox" id="syncOn" ${S.sync&&S.sync.enabled?'checked':''}> 启用云端同步</label>
+    <div class="field mt"><label>服务器地址（填同步接口的完整网址，例如 http://120.24.61.217/sync.php）</label><input id="syncUrl" placeholder="http://服务器地址/sync.php" value="${esc(S.sync&&S.sync.url||'')}"></div>
+    <div class="field"><label>同步密钥（自设，各端保持一致，当作密码保管）</label><input id="syncKey" type="password" placeholder="任意字符串" value="${esc(S.sync&&S.sync.key||'')}"></div>
+    <p id="syncStatus" class="sub">${syncStatusText()}</p>
+    <div class="row mt">
+      <button class="btn" onclick="saveSyncSettings()">💾 保存设置</button>
+      <button class="btn ghost" onclick="manualSync()">🔄 立即同步</button>
+    </div>
+    <p class="sub mt">提示：将 <code>sync.php</code> 上传到宝塔站点的网站根目录（需 PHP 环境），「服务器地址」填它的完整网址，例如 <code>http://120.24.61.217/sync.php</code>；建议走 HTTPS。也可把本应用的 index.html 也放同一站点、直接用该服务器打开（同源最稳，无需 GitHub Pages）。</p>
+  </div>
+  <div class="card">
     <h3><span class="emo">📌</span>关于</h3>
-    <p class="sub">林夕个人管理工作台 v1.4 · 奶茶陪你度过每一天 🥕<br>
-    纯静态 HTML+CSS+JS。数据保存在本机浏览器（localStorage），跨设备同步请用上方「📥 导出 JSON / 📤 导入 JSON」：在 A 设备导出文件、在 B 设备导入即可合并历史数据。Canvas 自绘图表，响应式适配手机/平板/电脑。</p>
+    <p class="sub">林夕个人管理工作台 v1.5 · 奶茶陪你度过每一天 🥕<br>
+    纯静态 HTML+CSS+JS。数据保存在本机浏览器（localStorage）。已支持「☁️ 云端同步」：在上方开启并填入你自己的服务器地址+密钥，即可在任意终端实时共享同一份数据；不想架服务器时，仍可用「📥 导出 / 📤 导入 JSON」在设备间搬运。Canvas 自绘图表，响应式适配手机/平板/电脑。</p>
   </div>`;
 }
 function exportData(){
@@ -2489,6 +2595,7 @@ function closeModal(){const m=$('#modalMask');if(m)m.remove();}
 /* ============ 启动 ============ */
 (async function(){
   await load();          // 先从本地文件（或浏览器存储）读取历史数据
+  await loadSync();      // 启动即从云端拉取最新（若已开启同步）
   bindNav();rollQuote();renderHeader();render();
 })();
 </script>
