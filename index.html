@@ -834,6 +834,7 @@ const BIZ_SEED=[
   {n:"第73节课第十一章第六节考点：商品出口的主要业务环节",m:44},
   {n:"第74节课第十一章第六节考点：商品进口的主要业务环节",m:20},
 ];
+const DEFAULT_SYNC_URL='http://ccdashboard.minenotes.com/sync.php'; // 预置云端同步服务器（用户自有宝塔）
 function defaultState(){
   const biz=BIZ_SEED.map((x,i)=>({id:uid(),name:x.n,mins:x.m,n:i+1,date:null}));
   // 第1-2课预设完成 2026-07-30
@@ -882,13 +883,13 @@ function defaultState(){
       projects:[], // {id,type,name,image,price,channel,status,sessions:[{date,min}],startDate,endDate,doneDays}
     },
     _ts:0,                                   // 最近一次本地变更时间戳（云端同步冲突判定用）
-    sync:{enabled:false,url:'',key:''},      // 云端同步配置
+    sync:{enabled:true,url:DEFAULT_SYNC_URL,key:''}, // 云端同步配置（默认开启：数据主存云端 MySQL，本地仅作离线缓存）
   };
 }
 
 /* ============ 存取 ============ */
 async function load(){
-  // 浏览器本地存储为主；跨设备同步通过「设置 → 导出/导入 JSON」完成
+  // 本地缓存优先读取（离线可用、秒开）；跨设备共享通过已默认开启的「云端同步」完成
   try{
     const r=localStorage.getItem(KEY);
     if(r){ S=JSON.parse(r); migrate(); syncCheckins(); persist(); return; }
@@ -931,8 +932,13 @@ function migrate(){
   if(S.study.plans)S.study.plans.forEach(p=>{ if(!('homeId' in p))p.homeId=null; });
   // 今日待办来源标识（src: work/study/null）
   if(S.todos)S.todos.forEach(x=>{ if(!('wid' in x))x.wid=null; if(!('src' in x))x.src = x.fromWork? 'work': null; });
-  // 云端同步字段补齐
-  if(!S.sync||typeof S.sync!=='object')S.sync={enabled:false,url:'',key:''};
+  // 云端同步字段补齐：旧版未配置 → 默认启用云端（数据主存 MySQL）
+  if(!S.sync||typeof S.sync!=='object')S.sync={enabled:true,url:DEFAULT_SYNC_URL,key:''};
+  else{
+    if(!S.sync.url){ S.sync.url=DEFAULT_SYNC_URL; S.sync.enabled=true; } // 从未配置过 → 采用默认服务器并启用
+    if(typeof S.sync.key!=='string')S.sync.key='';
+    if(typeof S.sync.enabled!=='boolean')S.sync.enabled=true;
+  }
   if(S._ts==null)S._ts=0;
 }
 /* 持久化：浏览器本地存储（GitHub Pages 为纯静态站点，数据保存于本机浏览器；
@@ -1023,6 +1029,32 @@ async function manualSync(){
   if(!S.sync||!S.sync.enabled){toast('请先开启并填写云端同步');return;}
   try{ await pullSync(false); await pushSync(); toast('🔄 已同步'); }
   catch(e){ toast('同步失败：'+(e.message||e)); }
+}
+/* 首次启动：已开启云端同步但未设密钥 → 引导用户设置（各端须一致） */
+async function ensureSyncKey(){
+  if(!S.sync||!S.sync.enabled||!S.sync.url)return;
+  if(S.sync.key)return;
+  await promptSyncKey();
+}
+function promptSyncKey(){
+  return new Promise(res=>{
+    const body=`<p class="sub">云端同步已默认开启，并连接到你的服务器。还需设置一个「同步密钥」——它相当于数据的访问密码，<b>所有设备必须填相同的密钥</b>才能共享同一份数据。</p>
+      <div class="field mt"><label>同步密钥（自定义，建议 6 位以上）</label><input id="firstKey" type="password" placeholder="例如 linxi2026"></div>
+      <p class="sub">不想用云端？可稍后在「☁️ 云端同步」里关闭开关；关闭后数据只存本机浏览器。</p>
+      <div class="row mt"><button class="btn" id="firstKeyOk">✅ 启用并同步</button></div>`;
+    showModal('设置同步密钥', body);
+    const mask=document.getElementById('modalMask');
+    if(mask)mask.onclick=e=>{ if(e.target===mask){ closeModal(); res(); } };
+    const ok=document.getElementById('firstKeyOk');
+    ok.onclick=async()=>{
+      const k=(document.getElementById('firstKey').value||'').trim();
+      if(!k){ toast('请先输入密钥'); return; }
+      S.sync.key=k; save(); closeModal();
+      try{ await pullSync(false); await pushSync(); render(); toast('☁️ 已启用云端同步'); }
+      catch(e){ toast('同步失败：'+(e.message||e)); }
+      res();
+    };
+  });
 }
 
 
@@ -2542,9 +2574,9 @@ function viewSettings(){
   </div>
   <div class="card">
     <h3><span class="emo">☁️</span>云端同步</h3>
-    <p class="sub">开启后，数据实时同步到你自己的云端服务器——手机/电脑/平板登录同一地址，自动共享同一份数据。</p>
+    <p class="sub">已默认开启并连接到你的云端服务器（数据实时写入 MySQL，本地仅作离线缓存）。<b>各设备填相同的同步密钥</b>即可共享同一份数据。以下为可选自定义。</p>
     <label class="switch-row"><input type="checkbox" id="syncOn" ${S.sync&&S.sync.enabled?'checked':''}> 启用云端同步</label>
-    <div class="field mt"><label>服务器地址（填同步接口的完整网址，例如 http://120.24.61.217/sync.php）</label><input id="syncUrl" placeholder="http://服务器地址/sync.php" value="${esc(S.sync&&S.sync.url||'')}"></div>
+    <div class="field mt"><label>服务器地址（默认已填好；如需换服务器可改）</label><input id="syncUrl" placeholder="http://ccdashboard.minenotes.com/sync.php" value="${esc(S.sync&&S.sync.url||'')}"></div>
     <div class="field"><label>同步密钥（自设，各端保持一致，当作密码保管）</label><input id="syncKey" type="password" placeholder="任意字符串" value="${esc(S.sync&&S.sync.key||'')}"></div>
     <p id="syncStatus" class="sub">${syncStatusText()}</p>
     <div class="row mt">
@@ -2556,7 +2588,7 @@ function viewSettings(){
   <div class="card">
     <h3><span class="emo">📌</span>关于</h3>
     <p class="sub">林夕个人管理工作台 v1.5 · 奶茶陪你度过每一天 🥕<br>
-    纯静态 HTML+CSS+JS。数据保存在本机浏览器（localStorage）。已支持「☁️ 云端同步」：在上方开启并填入你自己的服务器地址+密钥，即可在任意终端实时共享同一份数据；不想架服务器时，仍可用「📥 导出 / 📤 导入 JSON」在设备间搬运。Canvas 自绘图表，响应式适配手机/平板/电脑。</p>
+    纯静态 HTML+CSS+JS。数据<b>默认实时存入你的云端 MySQL</b>（服务器 ccdashboard.minenotes.com），本地浏览器仅作离线缓存与秒开；任意终端登录同一地址、填相同同步密钥，即自动共享同一份数据。不想用云端时，可在「☁️ 云端同步」关闭，或仍用「📥 导出 / 📤 导入 JSON」在设备间搬运。Canvas 自绘图表，响应式适配手机/平板/电脑。</p>
   </div>`;
 }
 function exportData(){
@@ -2594,9 +2626,10 @@ function closeModal(){const m=$('#modalMask');if(m)m.remove();}
 
 /* ============ 启动 ============ */
 (async function(){
-  await load();          // 先从本地文件（或浏览器存储）读取历史数据
-  await loadSync();      // 启动即从云端拉取最新（若已开启同步）
+  await load();          // 本地缓存优先读取（秒开 / 离线可用）
+  await loadSync();      // 启动即从云端拉取最新（云端为主，last-write-wins）
   bindNav();rollQuote();renderHeader();render();
+  await ensureSyncKey(); // 已开启同步但未设密钥 → 首次启动引导设置
 })();
 </script>
 </body>
